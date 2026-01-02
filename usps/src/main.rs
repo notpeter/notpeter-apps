@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use chrono::Utc;
 use scraper::{Html, Selector};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs;
 
 const DOMESTIC_CSV_URL: &str = "https://www.usps.com/business/prices/2025/m-fcm-eddm-retail.csv";
@@ -33,8 +33,8 @@ struct DomesticRates {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct LetterRates {
-    stamped: HashMap<String, f64>,
-    metered: HashMap<String, f64>,
+    stamped: BTreeMap<String, f64>,
+    metered: BTreeMap<String, f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -58,8 +58,8 @@ fn fetch_url(url: &str) -> Result<String> {
 }
 
 fn parse_domestic_csv(csv_content: &str) -> Result<DomesticRates> {
-    let mut letter_stamped: HashMap<String, f64> = HashMap::new();
-    let mut letter_metered: HashMap<String, f64> = HashMap::new();
+    let mut letter_stamped: BTreeMap<String, f64> = BTreeMap::new();
+    let mut letter_metered: BTreeMap<String, f64> = BTreeMap::new();
     let mut postcard = 0.0;
     let mut additional_ounce = 0.0;
     let mut nonmachinable_surcharge = 0.0;
@@ -182,7 +182,6 @@ fn parse_international_html(html_content: &str) -> Result<InternationalRates> {
 
     let mut global_forever = 1.70; // Default/fallback value as of July 2025
     let mut letter_1oz = 1.70;
-    let mut postcard = 1.70;
     let mut additional_ounce = 0.29;
     let mut large_envelope_1oz = 3.15;
 
@@ -208,8 +207,6 @@ fn parse_international_html(html_content: &str) -> Result<InternationalRates> {
                             if label.contains("letter") && label.contains("1") {
                                 letter_1oz = rate;
                                 global_forever = rate;
-                            } else if label.contains("postcard") {
-                                postcard = rate;
                             } else if label.contains("additional") {
                                 additional_ounce = rate;
                             } else if label.contains("large") || label.contains("flat") {
@@ -223,7 +220,7 @@ fn parse_international_html(html_content: &str) -> Result<InternationalRates> {
     }
 
     // The international postcard rate equals the 1oz letter rate for Global Forever
-    postcard = global_forever;
+    let postcard = global_forever;
 
     Ok(InternationalRates {
         effective_date: "7/13/2025".to_string(),
