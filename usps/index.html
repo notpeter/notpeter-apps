@@ -714,40 +714,67 @@
         const domesticLetterTemplate = document.getElementById('domestic-letter-svg');
         const domesticPostcardTemplate = document.getElementById('domestic-postcard-svg');
 
-        // Update URL hash
+        // Update URL hash - simplified anchors
         function updateHash() {
-            const parts = [state.region];
-            if (state.product === 'letter') {
-                parts.push(`${state.weight}oz-letter`);
-                if (state.nonmachinable) parts.push('nonmachinable');
-            } else {
+            const parts = [];
+
+            // International prefix (domestic is default, no prefix needed)
+            if (state.region === 'international') {
+                parts.push('international');
+            }
+
+            // Product type
+            if (state.product === 'postcard') {
                 parts.push('postcard');
-            }
-            window.location.hash = parts.join('-');
-        }
-
-        // Parse URL hash
-        function parseHash() {
-            const hash = window.location.hash.slice(1);
-            if (!hash) return;
-
-            if (hash.includes('international')) {
-                state.region = 'international';
             } else {
-                state.region = 'domestic';
-            }
-
-            if (hash.includes('postcard')) {
-                state.product = 'postcard';
-            } else {
-                state.product = 'letter';
-                const weightMatch = hash.match(/(\d+)oz/);
-                if (weightMatch) {
-                    state.weight = parseInt(weightMatch[1]);
+                // Letter is default, only add if not 1oz or has modifiers
+                if (state.weight > 1) {
+                    parts.push(`${state.weight}oz`);
+                } else if (parts.length === 0) {
+                    parts.push('letter');
                 }
             }
 
-            if (hash.includes('nonmachinable')) {
+            // Non-machinable modifier
+            if (state.nonmachinable && state.product === 'letter') {
+                parts.push('square');
+            }
+
+            window.location.hash = parts.join('-');
+        }
+
+        // Parse URL hash - simplified anchors
+        // Supported: #letter, #postcard, #2oz, #3oz, #square, #international, #international-postcard, etc.
+        function parseHash() {
+            const hash = window.location.hash.slice(1).toLowerCase();
+            if (!hash) return;
+
+            // Reset to defaults
+            state.region = 'domestic';
+            state.product = 'letter';
+            state.weight = 1;
+            state.nonmachinable = false;
+
+            // Check for international
+            if (hash.includes('international')) {
+                state.region = 'international';
+            }
+
+            // Check for postcard
+            if (hash.includes('postcard')) {
+                state.product = 'postcard';
+            }
+
+            // Check for weight (2oz, 3oz)
+            const weightMatch = hash.match(/(\d+)oz/);
+            if (weightMatch) {
+                state.weight = parseInt(weightMatch[1]);
+                if (state.weight > 3) state.weight = 3;
+                if (state.weight < 1) state.weight = 1;
+            }
+
+            // Check for square/non-machinable
+            if (hash.includes('square') || hash.includes('nonmachinable')) {
                 state.nonmachinable = true;
             }
         }
