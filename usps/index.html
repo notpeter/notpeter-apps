@@ -715,36 +715,38 @@
         const domesticPostcardTemplate = document.getElementById('domestic-postcard-svg');
 
         // Update URL hash - simplified anchors
+        // Format: #letter, #letter-2oz, #square, #square-2oz, #international, #international-2oz, #postcard, #international-postcard
         function updateHash() {
             const parts = [];
 
-            // International prefix (domestic is default, no prefix needed)
-            if (state.region === 'international') {
-                parts.push('international');
-            }
-
-            // Product type
             if (state.product === 'postcard') {
-                parts.push('postcard');
+                // Postcards: #postcard or #international-postcard
+                if (state.region === 'international') {
+                    parts.push('international-postcard');
+                } else {
+                    parts.push('postcard');
+                }
             } else {
-                // Letter is default, only add if not 1oz or has modifiers
-                if (state.weight > 1) {
-                    parts.push(`${state.weight}oz`);
-                } else if (parts.length === 0) {
+                // Letters: prefix is letter, square, or international
+                if (state.region === 'international') {
+                    parts.push('international');
+                } else if (state.nonmachinable) {
+                    parts.push('square');
+                } else {
                     parts.push('letter');
                 }
-            }
 
-            // Non-machinable modifier
-            if (state.nonmachinable && state.product === 'letter') {
-                parts.push('square');
+                // Add weight suffix if > 1oz
+                if (state.weight > 1) {
+                    parts.push(`${state.weight}oz`);
+                }
             }
 
             window.location.hash = parts.join('-');
         }
 
         // Parse URL hash - simplified anchors
-        // Supported: #letter, #postcard, #2oz, #3oz, #square, #international, #international-postcard, etc.
+        // Supported: #letter, #letter-2oz, #square, #square-2oz, #international, #international-2oz, #postcard, #international-postcard
         function parseHash() {
             const hash = window.location.hash.slice(1).toLowerCase();
             if (!hash) return;
