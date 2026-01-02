@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path usps/Cargo.toml -- --check
+
+      - name: Build with warnings as errors
+        run: cargo build --manifest-path usps/Cargo.toml
+        env:
+          RUSTFLAGS: "-D warnings"
+
+      - name: Run clippy
+        run: cargo clippy --manifest-path usps/Cargo.toml -- -D warnings
+
+      - name: Run tests
+        run: cargo test --manifest-path usps/Cargo.toml

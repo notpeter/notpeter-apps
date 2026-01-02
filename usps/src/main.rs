@@ -75,7 +75,7 @@ fn parse_domestic_csv(csv_content: &str) -> Result<DomesticRates> {
 
     for result in reader.records() {
         let record = result?;
-        if record.len() == 0 {
+        if record.is_empty() {
             continue;
         }
 
@@ -182,7 +182,6 @@ fn parse_international_html(html_content: &str) -> Result<InternationalRates> {
 
     let mut global_forever = 1.70; // Default/fallback value as of July 2025
     let mut letter_1oz = 1.70;
-    let mut postcard = 1.70;
     let mut additional_ounce = 0.29;
     let mut large_envelope_1oz = 3.15;
 
@@ -203,13 +202,11 @@ fn parse_international_html(html_content: &str) -> Result<InternationalRates> {
 
                     // Try to parse rate from second column
                     if let Some(rate_str) = cells.get(1) {
-                        let cleaned = rate_str.replace('$', "").replace(',', "");
+                        let cleaned = rate_str.replace(['$', ','], "");
                         if let Ok(rate) = cleaned.trim().parse::<f64>() {
                             if label.contains("letter") && label.contains("1") {
                                 letter_1oz = rate;
                                 global_forever = rate;
-                            } else if label.contains("postcard") {
-                                postcard = rate;
                             } else if label.contains("additional") {
                                 additional_ounce = rate;
                             } else if label.contains("large") || label.contains("flat") {
@@ -223,7 +220,7 @@ fn parse_international_html(html_content: &str) -> Result<InternationalRates> {
     }
 
     // The international postcard rate equals the 1oz letter rate for Global Forever
-    postcard = global_forever;
+    let postcard = global_forever;
 
     Ok(InternationalRates {
         effective_date: "7/13/2025".to_string(),
@@ -237,16 +234,14 @@ fn parse_international_html(html_content: &str) -> Result<InternationalRates> {
 
 fn main() -> Result<()> {
     println!("Fetching USPS domestic rates...");
-    let domestic_csv = fetch_url(DOMESTIC_CSV_URL)
-        .context("Failed to fetch domestic CSV")?;
+    let domestic_csv = fetch_url(DOMESTIC_CSV_URL).context("Failed to fetch domestic CSV")?;
 
     println!("Fetching USPS international rates...");
-    let international_html = fetch_url(INTERNATIONAL_HTML_URL)
-        .context("Failed to fetch international HTML")?;
+    let international_html =
+        fetch_url(INTERNATIONAL_HTML_URL).context("Failed to fetch international HTML")?;
 
     println!("Parsing domestic rates...");
-    let domestic = parse_domestic_csv(&domestic_csv)
-        .context("Failed to parse domestic CSV")?;
+    let domestic = parse_domestic_csv(&domestic_csv).context("Failed to parse domestic CSV")?;
 
     println!("Parsing international rates...");
     let international = parse_international_html(&international_html)
