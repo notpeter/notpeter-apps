@@ -1,0 +1,35 @@
+{
+  "generated_at": "2026-01-02T16:48:24.275383896+00:00",
+  "sources": {
+    "domestic_csv": "https://www.usps.com/business/prices/2025/m-fcm-eddm-retail.csv",
+    "international_html": "https://pe.usps.com/text/dmm300/Notice123.htm"
+  },
+  "domestic": {
+    "effective_date": "",
+    "letter": {
+      "stamped": {
+        "2oz": 1.07,
+        "3.5oz": 1.65,
+        "1oz": 0.78,
+        "3oz": 1.36
+      },
+      "metered": {
+        "1oz": 0.74,
+        "3.5oz": 1.61,
+        "2oz": 1.03,
+        "3oz": 1.32
+      }
+    },
+    "postcard": 0.61,
+    "additional_ounce": 0.29,
+    "nonmachinable_surcharge": 0.49
+  },
+  "international": {
+    "effective_date": "7/13/2025",
+    "global_forever": 1.7,
+    "letter_1oz": 1.7,
+    "postcard": 1.7,
+    "additional_ounce": 0.29,
+    "large_envelope_1oz": 75.15
+  }
+}
