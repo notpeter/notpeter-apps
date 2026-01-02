@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USPS Postage Rates</title>
+    <style>
+        :root {
+            --primary: #004B87;
+            --accent: #DA291C;
+            --light: #f8f9fa;
+            --dark: #333;
+            --border: #ddd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 8px;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .toggle-wrapper {
+            display: flex;
+            background: var(--light);
+            border-radius: 30px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .toggle-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 26px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: var(--dark);
+            font-weight: 500;
+        }
+
+        .toggle-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,75,135,0.3);
+        }
+
+        .toggle-btn.international.active {
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        /* Product Selection */
+        .product-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .product-card {
+            border: 3px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .product-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .product-card.active {
+            border-color: var(--primary);
+            background: rgba(0,75,135,0.05);
+        }
+
+        .product-card.international {
+            border-color: var(--border);
+        }
+
+        .product-card.international.active {
+            border-image: linear-gradient(90deg, var(--primary), var(--accent)) 1;
+            background: linear-gradient(135deg, rgba(0,75,135,0.05), rgba(218,41,28,0.05));
+        }
+
+        .product-card svg {
+            width: 100%;
+            max-width: 160px;
+            height: auto;
+            margin-bottom: 8px;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+
+        /* Price Display */
+        .price-display {
+            text-align: center;
+            padding: 24px;
+            background: linear-gradient(135deg, var(--light), #e9ecef);
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .price-display.international {
+            background: linear-gradient(135deg, #e8f0fe, #fde8e8);
+        }
+
+        .price-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .price-value {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .price-display.international .price-value {
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stamp-name {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 8px;
+        }
+
+        /* Options */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--light);
+            border-radius: 12px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+
+        .option-label small {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        /* Checkbox Switch */
+        .switch {
+            position: relative;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Weight Selector */
+        .weight-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .weight-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--dark);
+            transition: all 0.2s ease;
+        }
+
+        .weight-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .weight-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .weight-value {
+            min-width: 60px;
+            text-align: center;
+            line-height: 40px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.8rem;
+            margin-top: 20px;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* International stamp border on SVGs */
+        .international-border {
+            stroke-dasharray: 12, 6;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.6rem;
+            }
+
+            .price-value {
+                font-size: 2.8rem;
+            }
+
+            .product-card svg {
+                max-width: 120px;
+            }
+
+            .toggle-btn {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>USPS Postage Rates</h1>
+        <p class="subtitle">Current stamp prices for letters &amp; postcards</p>
+
+        <div class="card">
+            <!-- Domestic/International Toggle -->
+            <div class="toggle-container">
+                <div class="toggle-wrapper">
+                    <button class="toggle-btn active" data-region="domestic" id="btn-domestic">Domestic</button>
+                    <button class="toggle-btn international" data-region="international" id="btn-international">International</button>
+                </div>
+            </div>
+
+            <!-- Product Selection -->
+            <div class="product-selector">
+                <div class="product-card active" data-product="letter" id="card-letter">
+                    <div id="svg-letter">
+                        <!-- Domestic Letter SVG -->
+                        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="letter-svg domestic">
+                            <!-- Envelope Front -->
+                            <rect x="20" y="15" width="160" height="100" rx="4" fill="#fff" stroke="#333" stroke-width="2"/>
+                            <!-- Envelope flap -->
+                            <path d="M20 15 L100 55 L180 15" fill="none" stroke="#333" stroke-width="2"/>
+                            <!-- Address lines -->
+                            <line x1="80" y1="55" x2="140" y2="55" stroke="#999" stroke-width="2"/>
+                            <line x1="80" y1="65" x2="150" y2="65" stroke="#999" stroke-width="2"/>
+                            <line x1="80" y1="75" x2="145" y2="75" stroke="#999" stroke-width="2"/>
+                            <line x1="80" y1="85" x2="130" y2="85" stroke="#999" stroke-width="2"/>
+                            <!-- Return address squiggles -->
+                            <path d="M30 30 Q40 28 50 30 Q60 32 70 30" fill="none" stroke="#bbb" stroke-width="1.5"/>
+                            <path d="M30 38 Q38 36 46 38" fill="none" stroke="#bbb" stroke-width="1.5"/>
+                            <!-- Stamp placeholder -->
+                            <rect x="145" y="25" width="28" height="35" rx="2" fill="#e8f0fe" stroke="#004B87" stroke-width="1.5"/>
+                            <text x="159" y="47" text-anchor="middle" font-size="8" fill="#004B87" font-weight="bold">STAMP</text>
+
+                            <!-- Envelope Back -->
+                            <rect x="20" y="125" width="160" height="70" rx="4" fill="#f8f9fa" stroke="#333" stroke-width="2"/>
+                            <!-- Back flap (sealed) -->
+                            <path d="M20 125 L100 165 L180 125" fill="#fff" stroke="#333" stroke-width="2"/>
+                            <!-- Seal circle -->
+                            <circle cx="100" cy="145" r="8" fill="#004B87" opacity="0.3"/>
+                        </svg>
+                    </div>
+                    <div class="product-name">Letter</div>
+                </div>
+                <div class="product-card" data-product="postcard" id="card-postcard">
+                    <div id="svg-postcard">
+                        <!-- Domestic Postcard SVG -->
+                        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="postcard-svg domestic">
+                            <!-- Postcard Front -->
+                            <rect x="20" y="15" width="160" height="85" rx="4" fill="#fff" stroke="#333" stroke-width="2"/>
+                            <!-- Image area (placeholder pattern) -->
+                            <rect x="25" y="20" width="100" height="55" fill="#e9ecef"/>
+                            <path d="M25 75 L55 50 L85 65 L125 35" fill="none" stroke="#bbb" stroke-width="2"/>
+                            <circle cx="110" cy="35" r="10" fill="#ffc107" opacity="0.5"/>
+                            <!-- Caption area -->
+                            <rect x="25" y="80" width="100" height="15" fill="#f8f9fa"/>
+                            <line x1="30" y1="88" x2="80" y2="88" stroke="#ccc" stroke-width="1"/>
+                            <!-- Stamp area -->
+                            <rect x="140" y="25" width="28" height="35" rx="2" fill="#e8f0fe" stroke="#004B87" stroke-width="1.5"/>
+                            <text x="154" y="47" text-anchor="middle" font-size="8" fill="#004B87" font-weight="bold">STAMP</text>
+                            <!-- Postcard text -->
+                            <text x="154" y="80" text-anchor="middle" font-size="7" fill="#666">POSTCARD</text>
+
+                            <!-- Postcard Back -->
+                            <rect x="20" y="110" width="160" height="85" rx="4" fill="#fff" stroke="#333" stroke-width="2"/>
+                            <!-- Divider line -->
+                            <line x1="100" y1="115" x2="100" y2="190" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/>
+                            <!-- Message lines (left side) -->
+                            <line x1="30" y1="125" x2="90" y2="125" stroke="#ddd" stroke-width="1.5"/>
+                            <line x1="30" y1="140" x2="90" y2="140" stroke="#ddd" stroke-width="1.5"/>
+                            <line x1="30" y1="155" x2="90" y2="155" stroke="#ddd" stroke-width="1.5"/>
+                            <line x1="30" y1="170" x2="75" y2="170" stroke="#ddd" stroke-width="1.5"/>
+                            <!-- Address lines (right side) -->
+                            <line x1="110" y1="145" x2="165" y2="145" stroke="#999" stroke-width="2"/>
+                            <line x1="110" y1="160" x2="170" y2="160" stroke="#999" stroke-width="2"/>
+                            <line x1="110" y1="175" x2="160" y2="175" stroke="#999" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="product-name">Postcard</div>
+                </div>
+            </div>
+
+            <!-- Price Display -->
+            <div class="price-display" id="price-display">
+                <div class="price-label" id="price-label">1oz Letter with Forever Stamp</div>
+                <div class="price-value" id="price-value">$0.78</div>
+                <div class="stamp-name" id="stamp-name">Forever Stamp</div>
+            </div>
+
+            <!-- Options (only for letters) -->
+            <div class="options" id="letter-options">
+                <div class="option-row">
+                    <span class="option-label">
+                        Weight
+                        <small>(max 3.5oz)</small>
+                    </span>
+                    <div class="weight-selector">
+                        <button class="weight-btn" id="weight-minus">−</button>
+                        <span class="weight-value" id="weight-value">1oz</span>
+                        <button class="weight-btn" id="weight-plus">+</button>
+                    </div>
+                </div>
+                <div class="option-row" id="nonmach-row">
+                    <span class="option-label">
+                        Square / Non-Machinable
+                        <small>(+$0.49)</small>
+                    </span>
+                    <label class="switch">
+                        <input type="checkbox" id="nonmachinable">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Rates effective September 2025 | <a href="https://www.usps.com/business/prices.htm" target="_blank">USPS Source</a></p>
+            <p style="margin-top: 8px;">Data scraped with <a href="https://github.com" target="_blank">Rust + scraper</a></p>
+        </div>
+    </div>
+
+    <!-- International SVG Templates (hidden, swapped in via JS) -->
+    <template id="intl-letter-svg">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="letter-svg international">
+            <!-- Envelope Front with aerogramme border -->
+            <rect x="20" y="15" width="160" height="100" rx="4" fill="#fff" stroke="#333" stroke-width="2"/>
+            <!-- Aerogramme border pattern (blue-red-blue) -->
+            <rect x="20" y="15" width="160" height="8" fill="url(#aero-pattern)"/>
+            <rect x="20" y="107" width="160" height="8" fill="url(#aero-pattern)"/>
+            <rect x="20" y="15" width="8" height="100" fill="url(#aero-pattern-v)"/>
+            <rect x="172" y="15" width="8" height="100" fill="url(#aero-pattern-v)"/>
+            <!-- Patterns -->
+            <defs>
+                <pattern id="aero-pattern" patternUnits="userSpaceOnUse" width="16" height="8">
+                    <rect x="0" y="0" width="8" height="8" fill="#004B87"/>
+                    <rect x="8" y="0" width="8" height="8" fill="#DA291C"/>
+                </pattern>
+                <pattern id="aero-pattern-v" patternUnits="userSpaceOnUse" width="8" height="16">
+                    <rect x="0" y="0" width="8" height="8" fill="#004B87"/>
+                    <rect x="0" y="8" width="8" height="8" fill="#DA291C"/>
+                </pattern>
+            </defs>
+            <!-- Envelope flap -->
+            <path d="M28 23 L100 55 L172 23" fill="none" stroke="#333" stroke-width="2"/>
+            <!-- Address lines -->
+            <line x1="80" y1="55" x2="140" y2="55" stroke="#999" stroke-width="2"/>
+            <line x1="80" y1="65" x2="150" y2="65" stroke="#999" stroke-width="2"/>
+            <line x1="80" y1="75" x2="145" y2="75" stroke="#999" stroke-width="2"/>
+            <line x1="80" y1="85" x2="130" y2="85" stroke="#999" stroke-width="2"/>
+            <!-- Return address squiggles -->
+            <path d="M35 35 Q45 33 55 35 Q65 37 75 35" fill="none" stroke="#bbb" stroke-width="1.5"/>
+            <path d="M35 43 Q43 41 51 43" fill="none" stroke="#bbb" stroke-width="1.5"/>
+            <!-- Global stamp placeholder -->
+            <rect x="137" y="28" width="30" height="38" rx="2" fill="linear-gradient(135deg, #e8f0fe, #fde8e8)" stroke="url(#stamp-gradient)" stroke-width="2"/>
+            <defs>
+                <linearGradient id="stamp-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#004B87"/>
+                    <stop offset="100%" style="stop-color:#DA291C"/>
+                </linearGradient>
+            </defs>
+            <text x="152" y="44" text-anchor="middle" font-size="6" fill="#004B87" font-weight="bold">GLOBAL</text>
+            <text x="152" y="54" text-anchor="middle" font-size="6" fill="#DA291C" font-weight="bold">FOREVER</text>
+            <!-- AIR MAIL label -->
+            <rect x="35" y="85" width="40" height="12" fill="#004B87"/>
+            <text x="55" y="94" text-anchor="middle" font-size="7" fill="white" font-weight="bold">AIR MAIL</text>
+
+            <!-- Envelope Back -->
+            <rect x="20" y="125" width="160" height="70" rx="4" fill="#f8f9fa" stroke="#333" stroke-width="2"/>
+            <!-- Aerogramme border on back -->
+            <rect x="20" y="125" width="160" height="6" fill="url(#aero-pattern)"/>
+            <rect x="20" y="189" width="160" height="6" fill="url(#aero-pattern)"/>
+            <!-- Back flap (sealed) -->
+            <path d="M28 131 L100 160 L172 131" fill="#fff" stroke="#333" stroke-width="2"/>
+            <!-- Seal with globe -->
+            <circle cx="100" cy="150" r="10" fill="#004B87" opacity="0.4"/>
+            <circle cx="100" cy="150" r="6" fill="none" stroke="white" stroke-width="1"/>
+            <ellipse cx="100" cy="150" rx="3" ry="6" fill="none" stroke="white" stroke-width="0.5"/>
+            <line x1="94" y1="150" x2="106" y2="150" stroke="white" stroke-width="0.5"/>
+        </svg>
+    </template>
+
+    <template id="intl-postcard-svg">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="postcard-svg international">
+            <!-- Patterns -->
+            <defs>
+                <pattern id="aero-pattern-pc" patternUnits="userSpaceOnUse" width="12" height="6">
+                    <rect x="0" y="0" width="6" height="6" fill="#004B87"/>
+                    <rect x="6" y="0" width="6" height="6" fill="#DA291C"/>
+                </pattern>
+                <pattern id="aero-pattern-pc-v" patternUnits="userSpaceOnUse" width="6" height="12">
+                    <rect x="0" y="0" width="6" height="6" fill="#004B87"/>
+                    <rect x="0" y="6" width="6" height="6" fill="#DA291C"/>
+                </pattern>
+            </defs>
+
+            <!-- Postcard Front -->
+            <rect x="20" y="15" width="160" height="85" rx="4" fill="#fff" stroke="#333" stroke-width="2"/>
+            <!-- Aerogramme border -->
+            <rect x="20" y="15" width="160" height="6" fill="url(#aero-pattern-pc)"/>
+            <rect x="20" y="94" width="160" height="6" fill="url(#aero-pattern-pc)"/>
+            <rect x="20" y="15" width="6" height="85" fill="url(#aero-pattern-pc-v)"/>
+            <rect x="174" y="15" width="6" height="85" fill="url(#aero-pattern-pc-v)"/>
+            <!-- Image area -->
+            <rect x="30" y="25" width="90" height="50" fill="#e9ecef"/>
+            <path d="M30 75 L55 55 L80 65 L120 40" fill="none" stroke="#bbb" stroke-width="2"/>
+            <circle cx="105" cy="40" r="8" fill="#ffc107" opacity="0.5"/>
+            <!-- Globe icon in image -->
+            <circle cx="75" cy="50" r="15" fill="none" stroke="#004B87" stroke-width="1" opacity="0.3"/>
+            <ellipse cx="75" cy="50" rx="8" ry="15" fill="none" stroke="#004B87" stroke-width="0.5" opacity="0.3"/>
+            <!-- Caption area -->
+            <rect x="30" y="78" width="90" height="12" fill="#f8f9fa"/>
+            <text x="75" y="87" text-anchor="middle" font-size="6" fill="#666">GREETINGS FROM...</text>
+            <!-- Global stamp -->
+            <rect x="135" y="28" width="30" height="38" rx="2" fill="#fef9e7" stroke="url(#stamp-gradient)" stroke-width="2"/>
+            <text x="150" y="44" text-anchor="middle" font-size="6" fill="#004B87" font-weight="bold">GLOBAL</text>
+            <text x="150" y="54" text-anchor="middle" font-size="6" fill="#DA291C" font-weight="bold">FOREVER</text>
+            <!-- AIR MAIL -->
+            <text x="150" y="78" text-anchor="middle" font-size="6" fill="#004B87" font-weight="bold">AIR MAIL</text>
+
+            <!-- Postcard Back -->
+            <rect x="20" y="110" width="160" height="85" rx="4" fill="#fff" stroke="#333" stroke-width="2"/>
+            <!-- Aerogramme border -->
+            <rect x="20" y="110" width="160" height="6" fill="url(#aero-pattern-pc)"/>
+            <rect x="20" y="189" width="160" height="6" fill="url(#aero-pattern-pc)"/>
+            <rect x="20" y="110" width="6" height="85" fill="url(#aero-pattern-pc-v)"/>
+            <rect x="174" y="110" width="6" height="85" fill="url(#aero-pattern-pc-v)"/>
+            <!-- Divider line -->
+            <line x1="100" y1="120" x2="100" y2="185" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/>
+            <!-- Message lines (left side) -->
+            <line x1="32" y1="130" x2="90" y2="130" stroke="#ddd" stroke-width="1.5"/>
+            <line x1="32" y1="145" x2="90" y2="145" stroke="#ddd" stroke-width="1.5"/>
+            <line x1="32" y1="160" x2="90" y2="160" stroke="#ddd" stroke-width="1.5"/>
+            <line x1="32" y1="175" x2="75" y2="175" stroke="#ddd" stroke-width="1.5"/>
+            <!-- Address lines (right side) -->
+            <line x1="110" y1="145" x2="165" y2="145" stroke="#999" stroke-width="2"/>
+            <line x1="110" y1="160" x2="168" y2="160" stroke="#999" stroke-width="2"/>
+            <line x1="110" y1="175" x2="160" y2="175" stroke="#999" stroke-width="2"/>
+            <!-- PAR AVION label -->
+            <rect x="110" y="125" width="35" height="10" fill="#004B87"/>
+            <text x="127" y="133" text-anchor="middle" font-size="6" fill="white" font-weight="bold">PAR AVION</text>
+        </svg>
+    </template>
+
+    <template id="domestic-letter-svg">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="letter-svg domestic">
+            <!-- Envelope Front -->
+            <rect x="20" y="15" width="160" height="100" rx="4" fill="#fff" stroke="#333" stroke-width="2"/>
+            <!-- Envelope flap -->
+            <path d="M20 15 L100 55 L180 15" fill="none" stroke="#333" stroke-width="2"/>
+            <!-- Address lines -->
+            <line x1="80" y1="55" x2="140" y2="55" stroke="#999" stroke-width="2"/>
+            <line x1="80" y1="65" x2="150" y2="65" stroke="#999" stroke-width="2"/>
+            <line x1="80" y1="75" x2="145" y2="75" stroke="#999" stroke-width="2"/>
+            <line x1="80" y1="85" x2="130" y2="85" stroke="#999" stroke-width="2"/>
+            <!-- Return address squiggles -->
+            <path d="M30 30 Q40 28 50 30 Q60 32 70 30" fill="none" stroke="#bbb" stroke-width="1.5"/>
+            <path d="M30 38 Q38 36 46 38" fill="none" stroke="#bbb" stroke-width="1.5"/>
+            <!-- Stamp placeholder -->
+            <rect x="145" y="25" width="28" height="35" rx="2" fill="#e8f0fe" stroke="#004B87" stroke-width="1.5"/>
+            <text x="159" y="47" text-anchor="middle" font-size="8" fill="#004B87" font-weight="bold">STAMP</text>
+
+            <!-- Envelope Back -->
+            <rect x="20" y="125" width="160" height="70" rx="4" fill="#f8f9fa" stroke="#333" stroke-width="2"/>
+            <!-- Back flap (sealed) -->
+            <path d="M20 125 L100 165 L180 125" fill="#fff" stroke="#333" stroke-width="2"/>
+            <!-- Seal circle -->
+            <circle cx="100" cy="145" r="8" fill="#004B87" opacity="0.3"/>
+        </svg>
+    </template>
+
+    <template id="domestic-postcard-svg">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="postcard-svg domestic">
+            <!-- Postcard Front -->
+            <rect x="20" y="15" width="160" height="85" rx="4" fill="#fff" stroke="#333" stroke-width="2"/>
+            <!-- Image area (placeholder pattern) -->
+            <rect x="25" y="20" width="100" height="55" fill="#e9ecef"/>
+            <path d="M25 75 L55 50 L85 65 L125 35" fill="none" stroke="#bbb" stroke-width="2"/>
+            <circle cx="110" cy="35" r="10" fill="#ffc107" opacity="0.5"/>
+            <!-- Caption area -->
+            <rect x="25" y="80" width="100" height="15" fill="#f8f9fa"/>
+            <line x1="30" y1="88" x2="80" y2="88" stroke="#ccc" stroke-width="1"/>
+            <!-- Stamp area -->
+            <rect x="140" y="25" width="28" height="35" rx="2" fill="#e8f0fe" stroke="#004B87" stroke-width="1.5"/>
+            <text x="154" y="47" text-anchor="middle" font-size="8" fill="#004B87" font-weight="bold">STAMP</text>
+            <!-- Postcard text -->
+            <text x="154" y="80" text-anchor="middle" font-size="7" fill="#666">POSTCARD</text>
+
+            <!-- Postcard Back -->
+            <rect x="20" y="110" width="160" height="85" rx="4" fill="#fff" stroke="#333" stroke-width="2"/>
+            <!-- Divider line -->
+            <line x1="100" y1="115" x2="100" y2="190" stroke="#ccc" stroke-width="1" stroke-dasharray="4,2"/>
+            <!-- Message lines (left side) -->
+            <line x1="30" y1="125" x2="90" y2="125" stroke="#ddd" stroke-width="1.5"/>
+            <line x1="30" y1="140" x2="90" y2="140" stroke="#ddd" stroke-width="1.5"/>
+            <line x1="30" y1="155" x2="90" y2="155" stroke="#ddd" stroke-width="1.5"/>
+            <line x1="30" y1="170" x2="75" y2="170" stroke="#ddd" stroke-width="1.5"/>
+            <!-- Address lines (right side) -->
+            <line x1="110" y1="145" x2="165" y2="145" stroke="#999" stroke-width="2"/>
+            <line x1="110" y1="160" x2="170" y2="160" stroke="#999" stroke-width="2"/>
+            <line x1="110" y1="175" x2="160" y2="175" stroke="#999" stroke-width="2"/>
+        </svg>
+    </template>
+
+    <script>
+        // USPS Rates Data (from scraped JSON)
+        const rates = {
+            domestic: {
+                letter: {
+                    "1oz": 0.78,
+                    "2oz": 1.07,
+                    "3oz": 1.36,
+                    "3.5oz": 1.65
+                },
+                postcard: 0.61,
+                additional_ounce: 0.29,
+                nonmachinable_surcharge: 0.49
+            },
+            international: {
+                global_forever: 1.70,
+                letter_1oz: 1.70,
+                postcard: 1.70,
+                additional_ounce: 0.29
+            }
+        };
+
+        const stampNames = {
+            domestic: {
+                letter: {
+                    "1oz": "Forever Stamp",
+                    "2oz": "2-Ounce Forever Stamp",
+                    "3oz": "3-Ounce Forever Stamp",
+                    "3.5oz": "Forever + Additional Ounce Forever (x2) + Postcard"
+                },
+                postcard: "Postcard Forever Stamp"
+            },
+            international: {
+                letter: "Global Forever Stamp",
+                postcard: "Global Forever Stamp"
+            }
+        };
+
+        // State
+        let state = {
+            region: 'domestic',
+            product: 'letter',
+            weight: 1,
+            nonmachinable: false
+        };
+
+        // DOM Elements
+        const btnDomestic = document.getElementById('btn-domestic');
+        const btnInternational = document.getElementById('btn-international');
+        const cardLetter = document.getElementById('card-letter');
+        const cardPostcard = document.getElementById('card-postcard');
+        const priceDisplay = document.getElementById('price-display');
+        const priceLabel = document.getElementById('price-label');
+        const priceValue = document.getElementById('price-value');
+        const stampName = document.getElementById('stamp-name');
+        const letterOptions = document.getElementById('letter-options');
+        const nonmachRow = document.getElementById('nonmach-row');
+        const weightValue = document.getElementById('weight-value');
+        const weightMinus = document.getElementById('weight-minus');
+        const weightPlus = document.getElementById('weight-plus');
+        const nonmachinableCheckbox = document.getElementById('nonmachinable');
+        const svgLetter = document.getElementById('svg-letter');
+        const svgPostcard = document.getElementById('svg-postcard');
+
+        // Templates
+        const intlLetterTemplate = document.getElementById('intl-letter-svg');
+        const intlPostcardTemplate = document.getElementById('intl-postcard-svg');
+        const domesticLetterTemplate = document.getElementById('domestic-letter-svg');
+        const domesticPostcardTemplate = document.getElementById('domestic-postcard-svg');
+
+        // Update URL hash - simplified anchors
+        // Format: #letter, #letter-2oz, #square, #square-2oz, #international, #international-2oz, #postcard, #international-postcard
+        function updateHash() {
+            const parts = [];
+
+            if (state.product === 'postcard') {
+                // Postcards: #postcard or #international-postcard
+                if (state.region === 'international') {
+                    parts.push('international-postcard');
+                } else {
+                    parts.push('postcard');
+                }
+            } else {
+                // Letters: prefix is letter, square, or international
+                if (state.region === 'international') {
+                    parts.push('international');
+                } else if (state.nonmachinable) {
+                    parts.push('square');
+                } else {
+                    parts.push('letter');
+                }
+
+                // Add weight suffix if > 1oz
+                if (state.weight > 1) {
+                    parts.push(`${state.weight}oz`);
+                }
+            }
+
+            window.location.hash = parts.join('-');
+        }
+
+        // Parse URL hash - simplified anchors
+        // Supported: #letter, #letter-2oz, #square, #square-2oz, #international, #international-2oz, #postcard, #international-postcard
+        function parseHash() {
+            const hash = window.location.hash.slice(1).toLowerCase();
+            if (!hash) return;
+
+            // Reset to defaults
+            state.region = 'domestic';
+            state.product = 'letter';
+            state.weight = 1;
+            state.nonmachinable = false;
+
+            // Check for international
+            if (hash.includes('international')) {
+                state.region = 'international';
+            }
+
+            // Check for postcard
+            if (hash.includes('postcard')) {
+                state.product = 'postcard';
+            }
+
+            // Check for weight (2oz, 3oz)
+            const weightMatch = hash.match(/(\d+)oz/);
+            if (weightMatch) {
+                state.weight = parseInt(weightMatch[1]);
+                if (state.weight > 3) state.weight = 3;
+                if (state.weight < 1) state.weight = 1;
+            }
+
+            // Check for square/non-machinable
+            if (hash.includes('square') || hash.includes('nonmachinable')) {
+                state.nonmachinable = true;
+            }
+        }
+
+        // Calculate price
+        function calculatePrice() {
+            if (state.region === 'domestic') {
+                if (state.product === 'letter') {
+                    let key = state.weight === 3.5 ? '3.5oz' : `${state.weight}oz`;
+                    let price = rates.domestic.letter[key] || rates.domestic.letter['1oz'];
+                    if (state.nonmachinable) {
+                        price += rates.domestic.nonmachinable_surcharge;
+                    }
+                    return price;
+                } else {
+                    return rates.domestic.postcard;
+                }
+            } else {
+                // International - only 1oz available with Global Forever
+                return rates.international.global_forever;
+            }
+        }
+
+        // Get stamp name
+        function getStampName() {
+            if (state.region === 'domestic') {
+                if (state.product === 'letter') {
+                    let key = state.weight === 3.5 ? '3.5oz' : `${state.weight}oz`;
+                    let name = stampNames.domestic.letter[key];
+                    if (state.nonmachinable) {
+                        name += ' + Non-Machinable Surcharge';
+                    }
+                    return name;
+                } else {
+                    return stampNames.domestic.postcard;
+                }
+            } else {
+                return stampNames.international[state.product];
+            }
+        }
+
+        // Get price label
+        function getPriceLabel() {
+            const regionLabel = state.region === 'domestic' ? 'Domestic' : 'International';
+            if (state.product === 'letter') {
+                const weightLabel = state.region === 'domestic' ? `${state.weight}oz ` : '1oz ';
+                const nonmachLabel = state.nonmachinable ? ' (Square/Non-Machinable)' : '';
+                return `${regionLabel} ${weightLabel}Letter${nonmachLabel}`;
+            } else {
+                return `${regionLabel} Postcard`;
+            }
+        }
+
+        // Update SVG graphics
+        function updateSVGs() {
+            if (state.region === 'international') {
+                svgLetter.innerHTML = intlLetterTemplate.innerHTML;
+                svgPostcard.innerHTML = intlPostcardTemplate.innerHTML;
+            } else {
+                svgLetter.innerHTML = domesticLetterTemplate.innerHTML;
+                svgPostcard.innerHTML = domesticPostcardTemplate.innerHTML;
+            }
+        }
+
+        // Render UI
+        function render() {
+            // Region toggle
+            btnDomestic.classList.toggle('active', state.region === 'domestic');
+            btnInternational.classList.toggle('active', state.region === 'international');
+
+            // Product cards
+            cardLetter.classList.toggle('active', state.product === 'letter');
+            cardPostcard.classList.toggle('active', state.product === 'postcard');
+            cardLetter.classList.toggle('international', state.region === 'international');
+            cardPostcard.classList.toggle('international', state.region === 'international');
+
+            // Price display
+            priceDisplay.classList.toggle('international', state.region === 'international');
+            priceValue.textContent = `$${calculatePrice().toFixed(2)}`;
+            priceLabel.textContent = getPriceLabel();
+            stampName.textContent = getStampName();
+
+            // Letter options visibility
+            if (state.product === 'letter' && state.region === 'domestic') {
+                letterOptions.classList.remove('hidden');
+                nonmachRow.classList.remove('hidden');
+            } else if (state.product === 'letter' && state.region === 'international') {
+                letterOptions.classList.add('hidden');
+            } else {
+                letterOptions.classList.add('hidden');
+            }
+
+            // Weight controls
+            weightValue.textContent = `${state.weight}oz`;
+            weightMinus.disabled = state.weight <= 1;
+            weightPlus.disabled = state.weight >= 3;
+
+            // Nonmachinable checkbox
+            nonmachinableCheckbox.checked = state.nonmachinable;
+
+            // Update SVGs
+            updateSVGs();
+
+            // Update hash
+            updateHash();
+        }
+
+        // Event listeners
+        btnDomestic.addEventListener('click', () => {
+            state.region = 'domestic';
+            render();
+        });
+
+        btnInternational.addEventListener('click', () => {
+            state.region = 'international';
+            state.weight = 1; // Reset weight for international
+            render();
+        });
+
+        cardLetter.addEventListener('click', () => {
+            state.product = 'letter';
+            render();
+        });
+
+        cardPostcard.addEventListener('click', () => {
+            state.product = 'postcard';
+            render();
+        });
+
+        weightMinus.addEventListener('click', () => {
+            if (state.weight > 1) {
+                state.weight--;
+                render();
+            }
+        });
+
+        weightPlus.addEventListener('click', () => {
+            if (state.weight < 3) {
+                state.weight++;
+                render();
+            }
+        });
+
+        nonmachinableCheckbox.addEventListener('change', () => {
+            state.nonmachinable = nonmachinableCheckbox.checked;
+            render();
+        });
+
+        // Handle hash changes
+        window.addEventListener('hashchange', () => {
+            parseHash();
+            render();
+        });
+
+        // Initialize
+        parseHash();
+        render();
+    </script>
+</body>
+</html>
