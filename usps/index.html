@@ -91,6 +91,11 @@
             background: linear-gradient(90deg, var(--primary), var(--accent));
         }
 
+        .toggle-btn:focus-visible {
+            outline: 3px solid var(--primary);
+            outline-offset: 2px;
+        }
+
         /* Product Selection */
         .product-selector {
             display: grid;
@@ -127,6 +132,11 @@
             background: linear-gradient(135deg, rgba(0,75,135,0.05), rgba(218,41,28,0.05));
         }
 
+        .product-card:focus-visible {
+            outline: 3px solid var(--primary);
+            outline-offset: 2px;
+        }
+
         .product-card svg {
             width: 100%;
             max-width: 160px;
@@ -138,6 +148,12 @@
             font-weight: 600;
             color: var(--dark);
             font-size: 1.1rem;
+        }
+
+        .product-price {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 4px;
         }
 
         /* Price Display */
@@ -254,6 +270,11 @@
             transform: translateX(22px);
         }
 
+        .switch input:focus-visible + .slider {
+            outline: 3px solid var(--primary);
+            outline-offset: 2px;
+        }
+
         /* Weight Selector */
         .weight-selector {
             display: flex;
@@ -281,6 +302,11 @@
         .weight-btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
+        }
+
+        .weight-btn:focus-visible {
+            outline: 3px solid var(--primary);
+            outline-offset: 2px;
         }
 
         .weight-value {
@@ -313,6 +339,77 @@
             stroke-dasharray: 12, 6;
         }
 
+        /* Info Button */
+        .info-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0 4px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .info-btn:hover {
+            opacity: 1;
+        }
+
+        .info-btn:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 1px;
+            opacity: 1;
+            border-radius: 4px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: #e8f4fc;
+            border-left: 3px solid var(--primary);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: -4px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            color: var(--dark);
+        }
+
+        .info-box p {
+            margin-bottom: 8px;
+        }
+
+        .info-box ul {
+            margin: 0 0 10px 20px;
+            padding: 0;
+        }
+
+        .info-box li {
+            margin-bottom: 4px;
+        }
+
+        .info-box a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .info-box a:hover {
+            text-decoration: underline;
+        }
+
+        /* Screen reader only */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
         /* Hidden */
         .hidden {
             display: none !important;
@@ -336,27 +433,60 @@
                 padding: 10px 18px;
                 font-size: 0.9rem;
             }
+
+            /* Weight selector: constrain to right, reduce padding */
+            .weight-selector {
+                gap: 4px;
+            }
+
+            .weight-value {
+                min-width: 40px;
+                padding: 0 4px;
+            }
+
+            .weight-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .option-row {
+                padding: 10px 12px;
+            }
+
+            .option-label {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: baseline;
+                gap: 0 6px;
+            }
+
+            .option-label small {
+                flex-basis: 100%;
+                margin-top: 2px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>USPS Postage Rates</h1>
-        <p class="subtitle">Current stamp prices for letters &amp; postcards</p>
+        <!--<p class="subtitle">Current stamp prices for letters &amp; postcards</p>-->
 
         <div class="card">
             <!-- Domestic/International Toggle -->
-            <div class="toggle-container">
+            <div class="toggle-container" role="group" aria-label="Shipping region">
                 <div class="toggle-wrapper">
-                    <button class="toggle-btn active" data-region="domestic" id="btn-domestic">Domestic</button>
-                    <button class="toggle-btn international" data-region="international" id="btn-international">International</button>
+                    <button class="toggle-btn active" data-region="domestic" id="btn-domestic" aria-pressed="true">Domestic</button>
+                    <button class="toggle-btn international" data-region="international" id="btn-international" aria-pressed="false">International</button>
                 </div>
             </div>
 
             <!-- Product Selection -->
-            <div class="product-selector">
-                <div class="product-card active" data-product="letter" id="card-letter">
-                    <div id="svg-letter">
+            <div class="product-selector" role="group" aria-label="Mail type">
+                <div class="product-card" data-product="letter" id="card-letter" role="button" tabindex="0" aria-pressed="false">
+                    <div id="svg-letter" aria-hidden="true">
                         <!-- Domestic Letter SVG - 6" x 4.25" ratio (same as postcard) -->
                         <svg viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg" class="letter-svg domestic">
                             <!-- Envelope Front (address side, no flap) -->
@@ -382,8 +512,8 @@
                     </div>
                     <div class="product-name">Letter</div>
                 </div>
-                <div class="product-card" data-product="postcard" id="card-postcard">
-                    <div id="svg-postcard">
+                <div class="product-card" data-product="postcard" id="card-postcard" role="button" tabindex="0" aria-pressed="false">
+                    <div id="svg-postcard" aria-hidden="true">
                         <!-- Domestic Postcard SVG - 6" x 4.25" ratio -->
                         <svg viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg" class="postcard-svg domestic">
                             <defs>
@@ -440,41 +570,56 @@
             </div>
 
             <!-- Options (only for letters) -->
-            <div class="options" id="letter-options">
+            <div class="options hidden" id="letter-options">
                 <div class="option-row">
                     <span class="option-label">
                         Weight
-                        <small>(max 3.5oz)</small>
+                        <small>(+$0.29/oz)</small>
                     </span>
-                    <div class="weight-selector">
-                        <button class="weight-btn" id="weight-minus">−</button>
-                        <span class="weight-value" id="weight-value">1oz</span>
-                        <button class="weight-btn" id="weight-plus">+</button>
+                    <div class="weight-selector" role="group" aria-label="Weight selector">
+                        <button class="weight-btn" id="weight-minus" aria-label="Decrease weight">−</button>
+                        <span class="weight-value" id="weight-value" aria-live="polite">1oz</span>
+                        <button class="weight-btn" id="weight-plus" aria-label="Increase weight">+</button>
                     </div>
                 </div>
                 <div class="option-row" id="nonmach-row">
-                    <span class="option-label">
-                        Square / Non-Machinable
+                    <span class="option-label" id="nonmach-label">
+                        Non-Machinable
+                        <button class="info-btn" id="nonmach-info-btn" aria-label="More information about non-machinable surcharge" aria-expanded="false" aria-controls="nonmach-info" type="button">ⓘ</button>
                         <small>(+$0.49)</small>
                     </span>
                     <label class="switch">
-                        <input type="checkbox" id="nonmachinable">
+                        <input type="checkbox" id="nonmachinable" aria-labelledby="nonmach-label">
                         <span class="slider"></span>
                     </label>
+                </div>
+                <div class="info-box hidden" id="nonmach-info">
+                    <p>Certain mail pieces require an additional non-machinable surcharge ($0.49) to process:</p>
+                    <ul>
+                        <li>Square envelopes</li>
+                        <li>Aspect ratio &lt; 1.3 or &gt; 2.5 (square = 1.0)</li>
+                        <li>Non-paper materials (cloth, plastic, vinyl)</li>
+                        <li>Address parallel to the shorter side</li>
+                        <li>Contains items creating uneven thickness (pens, keys)</li>
+                        <li>Has clasps, strings, buttons, or wax seals</li>
+                    </ul>
+                    <a href="https://pe.usps.com/cpim/ftp/manuals/qsg300/Q201.pdf" target="_blank" rel="noopener noreferrer">USPS Mailpiece Design Guidelines (PDF)<span class="sr-only"> (opens in new tab)</span></a>
                 </div>
             </div>
 
             <!-- Price Display -->
-            <div class="price-display" id="price-display">
-                <div class="price-label" id="price-label">1oz Letter with Forever Stamp</div>
-                <div class="price-value" id="price-value">$0.78</div>
-                <div class="stamp-name" id="stamp-name">Forever Stamp</div>
+            <div class="price-display" id="price-display" role="status" aria-live="polite" aria-atomic="true">
+                <div class="price-label" id="price-label"></div>
+                <div class="price-value" id="price-value"></div>
+                <div class="stamp-name" id="stamp-name"></div>
             </div>
         </div>
 
         <div class="footer">
-            <p>Rates effective September 2025 | <a href="https://www.usps.com/business/prices.htm" target="_blank">USPS Source</a></p>
-            <p style="margin-top: 8px;">Data scraped with <a href="https://github.com" target="_blank">Rust + scraper</a></p>
+            <p>Rates effective September 2025 | <a href="https://www.usps.com/business/prices.htm" target="_blank" rel="noopener noreferrer">USPS Source<span class="sr-only"> (opens in new tab)</span></a></p>
+            <p>Unofficial - May contain errors and inaccuracies</p>
+            <p style="margin-top: 8px;">Built with ❤️ by
+                by <a href="https://notpeter.net" target="_blank" rel="noopener noreferrer">Peter Tripp<span class="sr-only"> (opens in new tab)</span></a></p>
         </div>
     </div>
 
@@ -727,6 +872,13 @@
         const domesticLetterTemplate = document.getElementById('domestic-letter-svg');
         const domesticPostcardTemplate = document.getElementById('domestic-postcard-svg');
 
+        // Mobile detection
+        const mobileQuery = window.matchMedia('(max-width: 480px)');
+
+        function isMobile() {
+            return mobileQuery.matches;
+        }
+
         // Update URL hash - simplified anchors
         // Format: #letter, #letter-2oz, #square, #square-2oz, #international, #international-2oz, #postcard, #international-postcard
         function updateHash() {
@@ -764,9 +916,8 @@
             const hash = window.location.hash.slice(1).toLowerCase();
             if (!hash) return;
 
-            // Reset to defaults
+            // Reset to defaults when hash exists
             state.region = 'domestic';
-            state.product = 'letter';
             state.weight = 1;
             state.nonmachinable = false;
 
@@ -778,6 +929,9 @@
             // Check for postcard
             if (hash.includes('postcard')) {
                 state.product = 'postcard';
+            } else if (hash.includes('letter') || hash.includes('square') || hash.includes('international')) {
+                // Set to letter if hash contains letter, square, or just international
+                state.product = 'letter';
             }
 
             // Check for weight (2oz, 3oz)
@@ -852,6 +1006,20 @@
                 svgLetter.innerHTML = domesticLetterTemplate.innerHTML;
                 svgPostcard.innerHTML = domesticPostcardTemplate.innerHTML;
             }
+
+            // On mobile: show only letter front and postcard back
+            if (isMobile()) {
+                const letterSvg = svgLetter.querySelector('svg');
+                const postcardSvg = svgPostcard.querySelector('svg');
+                if (letterSvg) {
+                    // Show only front (top portion): y=0 to ~130
+                    letterSvg.setAttribute('viewBox', '10 5 180 125');
+                }
+                if (postcardSvg) {
+                    // Show only back (bottom portion): y=125 to 250
+                    postcardSvg.setAttribute('viewBox', '10 128 180 125');
+                }
+            }
         }
 
         // Render UI
@@ -859,14 +1027,18 @@
             // Region toggle
             btnDomestic.classList.toggle('active', state.region === 'domestic');
             btnInternational.classList.toggle('active', state.region === 'international');
+            btnDomestic.setAttribute('aria-pressed', state.region === 'domestic');
+            btnInternational.setAttribute('aria-pressed', state.region === 'international');
 
             // Product cards
             cardLetter.classList.toggle('active', state.product === 'letter');
             cardPostcard.classList.toggle('active', state.product === 'postcard');
             cardLetter.classList.toggle('international', state.region === 'international');
             cardPostcard.classList.toggle('international', state.region === 'international');
+            cardLetter.setAttribute('aria-pressed', state.product === 'letter');
+            cardPostcard.setAttribute('aria-pressed', state.product === 'postcard');
 
-            // Price display
+            // Update price display
             priceDisplay.classList.toggle('international', state.region === 'international');
             priceValue.textContent = `$${calculatePrice().toFixed(2)}`;
             priceLabel.textContent = getPriceLabel();
@@ -876,8 +1048,6 @@
             if (state.product === 'letter' && state.region === 'domestic') {
                 letterOptions.classList.remove('hidden');
                 nonmachRow.classList.remove('hidden');
-            } else if (state.product === 'letter' && state.region === 'international') {
-                letterOptions.classList.add('hidden');
             } else {
                 letterOptions.classList.add('hidden');
             }
@@ -914,9 +1084,25 @@
             render();
         });
 
+        cardLetter.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                state.product = 'letter';
+                render();
+            }
+        });
+
         cardPostcard.addEventListener('click', () => {
             state.product = 'postcard';
             render();
+        });
+
+        cardPostcard.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                state.product = 'postcard';
+                render();
+            }
         });
 
         weightMinus.addEventListener('click', () => {
@@ -938,9 +1124,24 @@
             render();
         });
 
+        // Info button toggle
+        const nonmachInfoBtn = document.getElementById('nonmach-info-btn');
+        const nonmachInfo = document.getElementById('nonmach-info');
+
+        nonmachInfoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isHidden = nonmachInfo.classList.toggle('hidden');
+            nonmachInfoBtn.setAttribute('aria-expanded', !isHidden);
+        });
+
         // Handle hash changes
         window.addEventListener('hashchange', () => {
             parseHash();
+            render();
+        });
+
+        // Handle viewport changes (for mobile SVG adjustments)
+        mobileQuery.addEventListener('change', () => {
             render();
         });
 

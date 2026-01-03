@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use chrono::Utc;
 use scraper::{Html, Selector};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -10,7 +9,6 @@ const INTERNATIONAL_HTML_URL: &str = "https://pe.usps.com/text/dmm300/Notice123.
 
 #[derive(Debug, Serialize, Deserialize)]
 struct PostageRates {
-    generated_at: String,
     sources: Sources,
     domestic: DomesticRates,
     international: InternationalRates,
@@ -234,23 +232,20 @@ fn parse_international_html(html_content: &str) -> Result<InternationalRates> {
 
 fn main() -> Result<()> {
     println!("Fetching USPS domestic rates...");
-    let domestic_csv = fetch_url(DOMESTIC_CSV_URL)
-        .context("Failed to fetch domestic CSV")?;
+    let domestic_csv = fetch_url(DOMESTIC_CSV_URL).context("Failed to fetch domestic CSV")?;
 
     println!("Fetching USPS international rates...");
-    let international_html = fetch_url(INTERNATIONAL_HTML_URL)
-        .context("Failed to fetch international HTML")?;
+    let international_html =
+        fetch_url(INTERNATIONAL_HTML_URL).context("Failed to fetch international HTML")?;
 
     println!("Parsing domestic rates...");
-    let domestic = parse_domestic_csv(&domestic_csv)
-        .context("Failed to parse domestic CSV")?;
+    let domestic = parse_domestic_csv(&domestic_csv).context("Failed to parse domestic CSV")?;
 
     println!("Parsing international rates...");
     let international = parse_international_html(&international_html)
         .context("Failed to parse international HTML")?;
 
     let rates = PostageRates {
-        generated_at: Utc::now().to_rfc3339(),
         sources: Sources {
             domestic_csv: DOMESTIC_CSV_URL.to_string(),
             international_html: INTERNATIONAL_HTML_URL.to_string(),
