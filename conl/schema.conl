@@ -1,0 +1,109 @@
+; A CONL schema defines a set of CONL documents.
+;
+; This schema describes valid schemas (including itself!).
+;
+root = <schema>
+schema = https://conl.dev/schemas/schema.conl
+definitions
+  schema
+    required keys
+      root
+        matches = (<.*>)
+        docs = The definition that should match the root of the document
+      definitions
+        matches = <definitions>
+        docs = All definitions which make up the schema
+    keys
+      schema
+        matches = .*
+        docs = """markdown
+          An (optional) URL or file path to the schema definition that describes this schema.
+
+          For example https://conl.dev/schemas/schema.conl
+
+  definitions
+    keys
+      .* = <definition>
+
+  definition
+    any of
+      = <scalar>
+      = <map>
+      = <list>
+      = <any of>
+
+  scalar
+    keys
+      scalar
+        matches = <matcher>
+        docs = """markdown
+          Matches scalar values.
+
+  any of
+    required keys
+      any of
+        matches = <matcher list>
+        docs = Matches all values that match any of the given matchers.
+
+  list
+    keys
+      required items
+        matches = <matcher list>
+        docs = """markdown
+          Matches lists item-by-item with the given matchers.
+
+          If `items` is also set, then every required item must exist, and
+          the list may have any number of additional items that match `items`.
+
+          If `items` is not set, then the list must have the same number of items
+          as the `required items` list.
+
+      items
+        matches = <matcher>
+        docs = Matches lists where every item matches the given matcher.
+
+  map
+    keys
+      required keys
+        matches = <matcher map>
+        docs = """markdown
+          Matches maps where exactly one key-value pair matches each required key-value pair.
+
+          If `keys` is also set, then additional keys are also allowed.
+      keys =
+        matches = <matcher map>
+        docs = """markdown
+          Matches maps where every key-value pair matches the given matcher.
+
+          Unless `required keys` is set, this matches empty maps.
+
+  value matcher
+    scalar
+      matches = \<(.*)>|[^<].*
+      docs = """markdown
+        A matcher can either be a reference (<X>) where X is a key in the `definitions` map,
+        or it can be a regular expression to match against scalar values.
+
+        The regular expressions must match the whole string ("foo" matches only "foo", not "food"),
+        and . matches any unicode character (including newline).
+
+  documented matcher
+    required keys
+      matches = <value matcher>
+    keys
+      docs
+        matches = .*
+        docs = """markdown
+          Documentation for this matcher. This is assumed to be Markdown.
+
+  matcher
+    any of
+      = <value matcher>
+      = <documented matcher>
+
+  matcher list
+    items = <matcher>
+
+  matcher map
+    keys
+      <value matcher> = <matcher>

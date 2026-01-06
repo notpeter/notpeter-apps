@@ -1,0 +1,57 @@
+; CONL is a post-minimalist, human-centric configuration language.
+
+; There are four ways to define a value:
+scalar = value
+
+list
+  = value1
+  = value2
+
+map
+  key1 = value1
+  key2 = value2
+
+multiline_scalar = """
+  value
+
+; Multiline scalars support an optional hint for syntax highlighting.
+init_script = """bash
+  #!/bin/bash
+
+  echo "hello world"
+
+; Quoting is rarely required. Keys and values can contain pretty
+; much any character except ; (and = for keys).
+spaced out key = value with = signs and "quotes"!
+
+; It is possible to nest lists and maps as needed.
+; (and as in JSON, types can be mixed however you want)
+json_like
+  sub_map
+    key = value
+  sub_list
+    = value
+    =
+      map = no problem
+    =
+      = a list in a list ; in a map in a map
+  sub_value = 5
+
+; Types are deferred until parse time.
+; The app you are configuring knows what to expect.
+enabled = yes
+country_code = no
+
+; But, if you need an empty string, or other esoteric scalars,
+; you can use quotes.
+empty_string = ""
+quoted_scalar = "\twow\ttabs!\t"
+
+; Quoted scalars support the following escape sequencess:
+escape_sequences
+  = "\\" ; '\'
+  = "\"" ; '"'
+  = "\t" ; tab
+  = "\n" ; newline
+  = "\r" ; carriage return
+  = "\{1F321}" ; 🐱 (or any Unicode codepoint valid in UTF-8)
