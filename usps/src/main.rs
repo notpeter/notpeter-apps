@@ -407,6 +407,7 @@ struct PersonInfo {
 
 #[derive(Debug, Deserialize)]
 struct ProductListing {
+    product_number: Option<String>,
     product_title: String,
     long_title: Option<String>,
     price: Option<String>,
@@ -520,8 +521,10 @@ fn escape_conl_value(s: &str) -> String {
 
 fn format_multiline_text(text: &str, indent: usize) -> String {
     let indent_str = "  ".repeat(indent);
-    let lines: Vec<&str> = text.lines().collect();
-    let mut result = String::from("\"\"\"txt\n");
+    // Trim trailing empty lines
+    let trimmed = text.trim_end();
+    let lines: Vec<&str> = trimmed.lines().collect();
+    let mut result = String::from("\"\"\"md\n");
     for line in lines {
         if line.trim().is_empty() {
             result.push('\n');
@@ -531,7 +534,6 @@ fn format_multiline_text(text: &str, indent: usize) -> String {
             result.push('\n');
         }
     }
-    result.push_str(&indent_str);
     result
 }
 
@@ -670,8 +672,6 @@ fn is_included_product(title: &str) -> bool {
 
     false
 }
-
-const PRODUCTS_DIR: &str = "data/products";
 
 /// Transform API slug and name for special cases
 /// Returns (transformed_slug, transformed_name)
@@ -1055,6 +1055,7 @@ fn init_database(conn: &Connection) -> Result<()> {
             long_title TEXT,
             price TEXT,
             postal_store_url TEXT,
+            stamps_forever_url TEXT,
             images JSONB,
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now')),
@@ -1418,6 +1419,119 @@ fn scrape_stamp_details(
         }
     }
 
+    // Process products - download images to stamp_dir and build entries
+    // Tuple: (title, long_title, price, postal_store_url, stamps_forever_url, images)
+    let mut products_conl_entries: Vec<(
+        String,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Vec<String>,
+    )> = Vec::new();
+
+    if let Some(products) = &detail.product_listings {
+        // Filter to only included products with postal_store_url
+        let included_products: Vec<&ProductListing> = products
+            .iter()
+            .filter(|p| is_included_product(&p.product_title) && p.postal_store_url.is_some())
+            .collect();
+
+        for product in &included_products {
+            // Download all product images to stamp_dir (same location as stamp images)
+            let mut image_filenames: Vec<String> = Vec::new();
+            if let Some(media) = &product.media {
+                for media_item in media {
+                    // Skip video items (they have url instead of path)
+                    let Some(path) = &media_item.path else {
+                        continue;
+                    };
+                    let clean_url = path.split('?').next().unwrap_or(path);
+                    let img_data = client.fetch_binary(clean_url)?;
+                    let img_filename = extract_image_filename(clean_url);
+                    let img_path = stamp_dir.join(&img_filename);
+                    fs::write(&img_path, &img_data)?;
+                    if !quiet {
+                        print!("{}", osc8_link(clean_url, "p"));
+                        stdout.flush()?;
+                    }
+                    image_filenames.push(img_filename);
+                }
+            }
+
+            // Build JSON for images array (for database)
+            let images_json = if image_filenames.is_empty() {
+                None
+            } else {
+                Some(serde_json::to_string(&image_filenames)?)
+            };
+
+            // Construct stamps_forever_url from slug and product_number
+            let stamps_forever_url = product.product_number.as_ref().map(|pn| {
+                format!(
+                    "https://www.stampsforever.com/stamps/{}/{}",
+                    detail.slug, pn
+                )
+            });
+
+            // Store for CONL generation
+            products_conl_entries.push((
+                product.product_title.clone(),
+                product.long_title.clone(),
+                product.price.clone(),
+                product.postal_store_url.clone(),
+                stamps_forever_url.clone(),
+                image_filenames,
+            ));
+
+            // Insert into products table
+            conn.execute(
+                "INSERT OR REPLACE INTO products
+                 (stamp_slug, year, title, long_title, price, postal_store_url, stamps_forever_url, images, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, datetime('now'))",
+                rusqlite::params![
+                    transformed_slug,
+                    year,
+                    product.product_title,
+                    product.long_title,
+                    product.price,
+                    product.postal_store_url,
+                    stamps_forever_url,
+                    images_json,
+                ],
+            )?;
+        }
+    }
+
+    // Add products section to CONL (list of maps format)
+    if !products_conl_entries.is_empty() {
+        conl.push_str("products\n");
+        for (title, long_title, price, postal_store_url, stamps_forever_url, images) in
+            &products_conl_entries
+        {
+            conl.push_str("  =\n");
+            conl.push_str(&format!("    title = {}\n", title));
+            if let Some(lt) = long_title {
+                conl.push_str(&format!("    long_title = {}\n", lt));
+            }
+            if let Some(p) = price {
+                conl.push_str(&format!("    price = {}\n", p));
+            }
+            if let Some(url) = postal_store_url {
+                conl.push_str(&format!("    postal_store_url = {}\n", url));
+            }
+            if let Some(url) = stamps_forever_url {
+                conl.push_str(&format!("    stamps_forever_url = {}\n", url));
+            }
+            if !images.is_empty() {
+                conl.push_str("    images\n");
+                for img in images {
+                    conl.push_str(&format!("      = {}\n", img));
+                }
+            }
+        }
+    }
+
     // Write metadata.conl
     let metadata_path = stamp_dir.join("metadata.conl");
     fs::write(&metadata_path, &conl)?;
@@ -1519,125 +1633,6 @@ fn scrape_stamp_details(
             about_text,
         ],
     )?;
-
-    // Process products
-    let mut product_entries: Vec<serde_json::Value> = Vec::new();
-
-    if let Some(products) = &detail.product_listings {
-        // Filter to only included products with postal_store_url
-        let included_products: Vec<&ProductListing> = products
-            .iter()
-            .filter(|p| is_included_product(&p.product_title) && p.postal_store_url.is_some())
-            .collect();
-
-        if !included_products.is_empty() {
-            // Create products directory
-            let products_dir = PathBuf::from(PRODUCTS_DIR)
-                .join(year.to_string())
-                .join(&transformed_slug);
-            fs::create_dir_all(&products_dir)?;
-
-            for product in &included_products {
-                // Download all product images
-                let mut image_filenames: Vec<String> = Vec::new();
-                if let Some(media) = &product.media {
-                    for media_item in media {
-                        // Skip video items (they have url instead of path)
-                        let Some(path) = &media_item.path else {
-                            continue;
-                        };
-                        let clean_url = path.split('?').next().unwrap_or(path);
-                        let img_data = client.fetch_binary(clean_url)?;
-                        let img_filename = extract_image_filename(clean_url);
-                        let img_path = products_dir.join(&img_filename);
-                        fs::write(&img_path, &img_data)?;
-                        if !quiet {
-                            print!("{}", osc8_link(clean_url, "p"));
-                            stdout.flush()?;
-                        }
-                        image_filenames.push(img_filename);
-                    }
-                }
-
-                // Build JSON for images array
-                let images_json = if image_filenames.is_empty() {
-                    None
-                } else {
-                    Some(serde_json::to_string(&image_filenames)?)
-                };
-
-                // Insert into products table
-                conn.execute(
-                    "INSERT OR REPLACE INTO products
-                     (stamp_slug, year, title, long_title, price, postal_store_url, images, updated_at)
-                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, datetime('now'))",
-                    rusqlite::params![
-                        transformed_slug,
-                        year,
-                        product.product_title,
-                        product.long_title,
-                        product.price,
-                        product.postal_store_url,
-                        images_json,
-                    ],
-                )?;
-
-                // Build product entry for CONL
-                let mut entry = serde_json::Map::new();
-                entry.insert(
-                    "title".to_string(),
-                    serde_json::json!(product.product_title),
-                );
-                if let Some(lt) = &product.long_title {
-                    entry.insert("long_title".to_string(), serde_json::json!(lt));
-                }
-                if let Some(p) = &product.price {
-                    entry.insert("price".to_string(), serde_json::json!(p));
-                }
-                if let Some(url) = &product.postal_store_url {
-                    entry.insert("postal_store_url".to_string(), serde_json::json!(url));
-                }
-                if !image_filenames.is_empty() {
-                    entry.insert("images".to_string(), serde_json::json!(image_filenames));
-                }
-                product_entries.push(serde_json::Value::Object(entry));
-            }
-
-            // Write products metadata.conl
-            let mut products_conl = String::new();
-            products_conl.push_str(&format!("year = {}\n", year));
-            products_conl.push_str(&format!("slug = {}\n", transformed_slug));
-            products_conl.push_str("products\n");
-            for product in &included_products {
-                products_conl.push_str(&format!("  title = {}\n", product.product_title));
-                if let Some(lt) = &product.long_title {
-                    products_conl.push_str(&format!("  long_title = {}\n", lt));
-                }
-                if let Some(p) = &product.price {
-                    products_conl.push_str(&format!("  price = {}\n", p));
-                }
-                if let Some(url) = &product.postal_store_url {
-                    products_conl.push_str(&format!("  postal_store_url = {}\n", url));
-                }
-                // List all images (skip videos which have no path)
-                if let Some(media) = &product.media {
-                    let image_paths: Vec<_> =
-                        media.iter().filter_map(|m| m.path.as_ref()).collect();
-                    if !image_paths.is_empty() {
-                        products_conl.push_str("  images\n");
-                        for path in image_paths {
-                            let img_filename = extract_image_filename(path);
-                            products_conl.push_str(&format!("    = {}\n", img_filename));
-                        }
-                    }
-                }
-                products_conl.push_str("  ---\n");
-            }
-
-            let products_metadata_path = products_dir.join("metadata.conl");
-            fs::write(&products_metadata_path, &products_conl)?;
-        }
-    }
 
     if !quiet {
         let dir_name = stamp_dir.file_name().unwrap_or_default().to_string_lossy();
