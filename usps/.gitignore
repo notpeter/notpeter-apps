@@ -1,4 +1,5 @@
 /target/
 /cache/
-/data/**/*.{png,jpeg,jpg}
+/data/**/*.png
+/data/**/*.jpg
 stamps.db
