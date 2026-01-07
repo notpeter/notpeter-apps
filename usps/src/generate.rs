@@ -811,6 +811,41 @@ h3 {
     border-color: var(--primary);
 }
 
+.stamp-thumbnails img.active {
+    border-color: var(--primary);
+}
+
+/* Mobile carousel for thumbnails */
+@media (max-width: 768px) {
+    .stamp-thumbnails {
+        display: grid;
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(2, 80px);
+        grid-auto-flow: column;
+        grid-auto-columns: 80px;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        gap: 8px;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .stamp-thumbnails::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .stamp-thumbnails::-webkit-scrollbar-track {
+        background: var(--border);
+        border-radius: 3px;
+    }
+
+    .stamp-thumbnails::-webkit-scrollbar-thumb {
+        background: var(--text-muted);
+        border-radius: 3px;
+    }
+}
+
 .stamp-info {
     background: var(--card-bg);
     border-radius: var(--radius);
@@ -922,15 +957,15 @@ h3 {
 
 /* Year navigation */
 .year-nav {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
     margin-bottom: 32px;
 }
 
 .year-nav a {
-    display: inline-block;
-    padding: 8px 16px;
+    display: block;
+    padding: 8px 12px;
     background: var(--card-bg);
     border-radius: 4px;
     text-decoration: none;
@@ -938,6 +973,7 @@ h3 {
     font-weight: 500;
     box-shadow: var(--shadow);
     transition: background 0.2s, color 0.2s;
+    text-align: center;
 }
 
 .year-nav a:hover, .year-nav a.active {
@@ -1047,13 +1083,37 @@ footer a {
     font-size: 0.75rem;
     font-weight: 600;
 }
+
+/* Role badges for credits pages */
+.role-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+.role-badge.art-director { background: #e6f0ff; color: #1a365d; }
+.role-badge.artist { background: #e6f6e6; color: #22543d; }
+.role-badge.designer { background: #fef3c7; color: #92400e; }
+.role-badge.photographer { background: #e9d8fd; color: #553c9a; }
+.role-badge.illustrator { background: #fed7e2; color: #97266d; }
+.role-badge.typographer { background: #bee3f8; color: #2a4365; }
+.role-badge.source { background: #e2e8f0; color: #4a5568; }
+
+.stamp-roles {
+    margin-top: 4px;
+}
 "#
 }
 
 /// Generate page header HTML
 fn page_header(title: &str, current_path: &str) -> String {
     let nav_items = [
-        ("/", "Home"),
         ("/forever-stamps/", "Forever"),
         ("/postcard-forever-stamps/", "Postcard"),
         ("/global-forever-stamps/", "Global"),
@@ -1061,7 +1121,7 @@ fn page_header(title: &str, current_path: &str) -> String {
         ("/denominated-postage-stamps/", "Denominated"),
         ("/cards/", "Cards"),
         ("/envelopes/", "Envelopes"),
-        ("/people/", "People"),
+        ("/credits/", "Credits"),
     ];
 
     let nav_html: String = nav_items
@@ -1104,9 +1164,34 @@ fn page_footer() -> &'static str {
     </main>
     <footer>
         <div class="container">
-            <p>Stamp data from <a href="https://stampsforever.com">StampsForever.com</a></p>
+            <p>Not affiliated with United States Postal Service.</p>
+            <p>This is a USPS fan project - Not responsible for errors or omissions.</p>
+            <p>Please see <a href="https://usps.com">USPS.com</a> for Official Rates, Regulations and Purchase.</p>
         </div>
     </footer>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mainImage = document.querySelector('.stamp-main-image img');
+        const thumbnails = document.querySelectorAll('.stamp-thumbnails img');
+
+        if (mainImage && thumbnails.length > 0) {
+            // Set first thumbnail as active
+            thumbnails[0].classList.add('active');
+
+            thumbnails.forEach(function(thumb) {
+                thumb.addEventListener('click', function() {
+                    // Update main image
+                    mainImage.src = this.src;
+                    mainImage.alt = this.alt;
+
+                    // Update active state
+                    thumbnails.forEach(function(t) { t.classList.remove('active'); });
+                    this.classList.add('active');
+                });
+            });
+        }
+    });
+    </script>
 </body>
 </html>
 "#
@@ -1261,33 +1346,33 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
     // Credits
     if let Some(ad) = &stamp.credits.art_director {
         html.push_str(&format!(
-            r#"<span class="stamp-meta-label">Art Director</span><span><a href="/people/{}/">{}</a></span>"#,
+            r#"<span class="stamp-meta-label">Art Director</span><span><a href="/credits/{}/">{}</a></span>"#,
             slugify(ad), html_escape(ad)
         ));
     }
     if let Some(artist) = &stamp.credits.artist {
         html.push_str(&format!(
-            r#"<span class="stamp-meta-label">Artist</span><span><a href="/people/{}/">{}</a></span>"#,
+            r#"<span class="stamp-meta-label">Artist</span><span><a href="/credits/{}/">{}</a></span>"#,
             slugify(artist), html_escape(artist)
         ));
     }
     if let Some(designer) = &stamp.credits.designer {
         if stamp.credits.artist.as_deref() != Some(designer) {
             html.push_str(&format!(
-                r#"<span class="stamp-meta-label">Designer</span><span><a href="/people/{}/">{}</a></span>"#,
+                r#"<span class="stamp-meta-label">Designer</span><span><a href="/credits/{}/">{}</a></span>"#,
                 slugify(designer), html_escape(designer)
             ));
         }
     }
     if let Some(photographer) = &stamp.credits.photographer {
         html.push_str(&format!(
-            r#"<span class="stamp-meta-label">Photographer</span><span><a href="/people/{}/">{}</a></span>"#,
+            r#"<span class="stamp-meta-label">Photographer</span><span><a href="/credits/{}/">{}</a></span>"#,
             slugify(photographer), html_escape(photographer)
         ));
     }
     if let Some(illustrator) = &stamp.credits.illustrator {
         html.push_str(&format!(
-            r#"<span class="stamp-meta-label">Illustrator</span><span><a href="/people/{}/">{}</a></span>"#,
+            r#"<span class="stamp-meta-label">Illustrator</span><span><a href="/credits/{}/">{}</a></span>"#,
             slugify(illustrator), html_escape(illustrator)
         ));
     }
@@ -1329,9 +1414,12 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
             }
 
             html.push_str(r#"<div class="product-card-content">"#);
+
+            // Use long_title if available, otherwise use title
+            let display_title = product.long_title.as_ref().unwrap_or(&product.title);
             html.push_str(&format!(
                 r#"<div class="product-card-title">{}</div>"#,
-                html_escape(&product.title)
+                html_escape(display_title)
             ));
 
             if let Some(price) = &product.price {
@@ -1341,9 +1429,16 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
                 ));
             }
 
+            // Show buy links
             if let Some(url) = &product.postal_store_url {
                 html.push_str(&format!(
-                    r#"<a href="{}" target="_blank" rel="noopener" class="product-card-link">Buy at USPS</a>"#,
+                    r#"<a href="{}" target="_blank" rel="noopener" class="product-card-link">Buy at USPS</a> "#,
+                    url
+                ));
+            }
+            if let Some(url) = &product.stamps_forever_url {
+                html.push_str(&format!(
+                    r#"<a href="{}" target="_blank" rel="noopener" class="product-card-link" style="background: var(--accent);">StampsForever</a>"#,
                     url
                 ));
             }
@@ -1363,7 +1458,7 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
 }
 
 /// Generate year index page
-fn generate_year_page(year: u32, stamps: &[&Stamp], output_dir: &Path) -> Result<()> {
+fn generate_year_page(year: u32, stamps: &[&Stamp], all_years: &[u32], output_dir: &Path) -> Result<()> {
     let page_dir = output_dir.join(year.to_string());
     fs::create_dir_all(&page_dir)?;
 
@@ -1378,6 +1473,14 @@ fn generate_year_page(year: u32, stamps: &[&Stamp], output_dir: &Path) -> Result
 "#,
         year
     ));
+
+    // Year navigation
+    html.push_str(r#"<div class="year-nav">"#);
+    for y in all_years {
+        let active = if *y == year { " class=\"active\"" } else { "" };
+        html.push_str(&format!(r#"<a href="/{}/"{}>{}</a>"#, y, active, y));
+    }
+    html.push_str("</div>");
 
     html.push_str(&format!("<h2>{} Stamps</h2>", year));
     html.push_str(&format!("<p style=\"margin-bottom: 24px; color: var(--text-muted);\">{} stamps issued</p>", stamps.len()));
@@ -1486,9 +1589,87 @@ fn slugify(name: &str) -> String {
         .join("-")
 }
 
-/// Generate people index and individual pages
+/// Get roles for a person on a specific stamp
+fn get_roles_for_person(name: &str, stamp: &Stamp) -> Vec<&'static str> {
+    let mut roles = Vec::new();
+
+    if stamp.credits.art_director.as_deref() == Some(name) {
+        roles.push("Art Director");
+    }
+    if stamp.credits.artist.as_deref() == Some(name) {
+        roles.push("Artist");
+    }
+    if stamp.credits.designer.as_deref() == Some(name) && stamp.credits.artist.as_deref() != Some(name) {
+        roles.push("Designer");
+    }
+    if stamp.credits.photographer.as_deref() == Some(name) {
+        roles.push("Photographer");
+    }
+    if stamp.credits.illustrator.as_deref() == Some(name) {
+        roles.push("Illustrator");
+    }
+    if stamp.credits.typographer.as_deref() == Some(name) {
+        roles.push("Typographer");
+    }
+    if stamp.credits.sources.contains(&name.to_string()) {
+        roles.push("Source");
+    }
+
+    roles
+}
+
+/// Generate a stamp card with role badges
+fn stamp_card_with_roles_html(stamp: &Stamp, roles: &[&str], image_base: &str) -> String {
+    let image_html = if let Some(img) = stamp.stamp_images.first() {
+        format!(
+            r#"<img src="{}/{}/{}/{}" alt="{}">"#,
+            image_base, stamp.year, stamp.slug, img, html_escape(&stamp.name)
+        )
+    } else if let Some(img) = &stamp.sheet_image {
+        format!(
+            r#"<img src="{}/{}/{}/{}" alt="{}">"#,
+            image_base, stamp.year, stamp.slug, img, html_escape(&stamp.name)
+        )
+    } else {
+        "<span>No image</span>".to_string()
+    };
+
+    let roles_html: String = roles.iter().map(|role| {
+        let class = match *role {
+            "Art Director" => "art-director",
+            "Artist" => "artist",
+            "Designer" => "designer",
+            "Photographer" => "photographer",
+            "Illustrator" => "illustrator",
+            "Typographer" => "typographer",
+            _ => "source",
+        };
+        format!(r#"<span class="role-badge {}">{}</span>"#, class, role)
+    }).collect();
+
+    format!(
+        r#"<div class="stamp-card">
+    <a href="/{}/{}/">
+        <div class="stamp-card-image">{}</div>
+        <div class="stamp-card-content">
+            <div class="stamp-card-title">{}</div>
+            <div class="stamp-card-meta">{}</div>
+            <div class="stamp-roles">{}</div>
+        </div>
+    </a>
+</div>"#,
+        stamp.year,
+        stamp.slug,
+        image_html,
+        html_escape(&stamp.name),
+        stamp.year,
+        roles_html
+    )
+}
+
+/// Generate credits index and individual pages
 fn generate_people_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
-    // Collect all people and their stamps
+    // Collect all people and their stamps (with roles tracking)
     let mut people: HashMap<String, Vec<&Stamp>> = HashMap::new();
 
     for stamp in stamps {
@@ -1509,6 +1690,9 @@ fn generate_people_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
         if let Some(name) = &stamp.credits.illustrator {
             people.entry(name.clone()).or_default().push(stamp);
         }
+        if let Some(name) = &stamp.credits.typographer {
+            people.entry(name.clone()).or_default().push(stamp);
+        }
         for source in &stamp.credits.sources {
             people.entry(source.clone()).or_default().push(stamp);
         }
@@ -1519,14 +1703,14 @@ fn generate_people_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
     sorted_people.sort_by(|a, b| a.0.cmp(&b.0));
 
     // Generate index page
-    let people_dir = output_dir.join("people");
-    fs::create_dir_all(&people_dir)?;
+    let credits_dir = output_dir.join("credits");
+    fs::create_dir_all(&credits_dir)?;
 
-    let mut html = page_header("People", "/people/");
+    let mut html = page_header("Credits", "/credits/");
 
     html.push_str(r#"<nav class="breadcrumb">
     <a href="/">Home</a> <span>/</span>
-    <span>People</span>
+    <span>Credits</span>
 </nav>
 "#);
 
@@ -1542,7 +1726,7 @@ fn generate_people_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
         // Deduplicate stamps
         let unique_stamps: HashSet<_> = person_stamps.iter().map(|s| &s.slug).collect();
         html.push_str(&format!(
-            r#"<a href="/people/{}/" class="person-link">
+            r#"<a href="/credits/{}/" class="person-link">
     <div class="person-name">{}</div>
     <div class="person-count">{} stamps</div>
 </a>"#,
@@ -1552,12 +1736,12 @@ fn generate_people_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
     html.push_str("</div>");
 
     html.push_str(page_footer());
-    fs::write(people_dir.join("index.html"), html)?;
+    fs::write(credits_dir.join("index.html"), html)?;
 
     // Generate individual person pages
     for (name, person_stamps) in &sorted_people {
         let slug = slugify(name);
-        let person_dir = people_dir.join(&slug);
+        let person_dir = credits_dir.join(&slug);
         fs::create_dir_all(&person_dir)?;
 
         let mut html = page_header(name, "");
@@ -1565,7 +1749,7 @@ fn generate_people_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
         html.push_str(&format!(
             r#"<nav class="breadcrumb">
     <a href="/">Home</a> <span>/</span>
-    <a href="/people/">People</a> <span>/</span>
+    <a href="/credits/">Credits</a> <span>/</span>
     <span>{}</span>
 </nav>
 "#,
@@ -1585,7 +1769,8 @@ fn generate_people_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
 
         html.push_str(r#"<div class="stamp-grid">"#);
         for stamp in &unique_stamps {
-            html.push_str(&stamp_card_html(stamp, "/images"));
+            let roles = get_roles_for_person(name, stamp);
+            html.push_str(&stamp_card_with_roles_html(stamp, &roles, "/images"));
         }
         html.push_str("</div>");
 
@@ -1708,7 +1893,7 @@ pub fn run_generate() -> Result<()> {
     println!("Generating year pages...");
     for year in &years {
         let year_stamps: Vec<_> = stamps.iter().filter(|s| s.year == *year).collect();
-        generate_year_page(*year, &year_stamps, &output_dir)?;
+        generate_year_page(*year, &year_stamps, &years, &output_dir)?;
     }
 
     println!("Generating category pages...");
