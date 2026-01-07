@@ -3,3 +3,4 @@
 /data/**/*.png
 /data/**/*.jpg
 stamps.db
+output/

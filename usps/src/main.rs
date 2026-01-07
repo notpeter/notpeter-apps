@@ -8,6 +8,8 @@ use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
 
+mod generate;
+
 const DOMESTIC_CSV_URL: &str = "https://www.usps.com/business/prices/2025/m-fcm-eddm-retail.csv";
 const INTERNATIONAL_HTML_URL: &str = "https://pe.usps.com/text/dmm300/Notice123.htm";
 const STAMPS_API_URL: &str = "https://admin.stampsforever.com/api/stamp-issuances";
@@ -117,6 +119,8 @@ enum StampsAction {
         #[arg(short, long)]
         quiet: bool,
     },
+    /// Generate static HTML site in output/ directory
+    Generate,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -673,31 +677,83 @@ fn is_included_product(title: &str) -> bool {
     false
 }
 
-/// Transform API slug and name for special cases
+/// Slug typo fixes - corrects typos in API slugs
+const SLUG_TYPO_FIXES: &[(&str, &str)] = &[
+    ("columbia-river-george", "columbia-river-gorge"), // Typo: "george" should be "gorge"
+];
+
+/// Denomination overrides for stamps where rate_type is null or insufficient
+/// Format: (api_slug, denomination_suffix)
+/// Use this for stamps where we can't derive the denomination from rate_type
+const SLUG_DENOMINATION_OVERRIDES: &[(&str, &str)] = &[
+    // Stamps with null rate_type that need explicit denominations
+    ("eid", "34c"),       // 2001 first-class rate
+    ("eid-2", "forever"), // 2013 Forever stamp
+    ("american-flag", "41c"),
+];
+
+/// Transform API slug and name with denomination and year suffixes
 /// Returns (transformed_slug, transformed_name)
 ///
-/// Transformations:
-/// - Year suffix: "love-2026" -> slug="love", name="Love (2026)"
-/// - Dollar prefix: "$2 Floral Geometry" with slug "2-floral-geometry" -> "floral-geometry-2d"
-/// - Cent prefix: "10¢ Poppies and Coneflowers" with slug "10c-poppies-and-coneflowers" -> "poppies-and-coneflowers-10c"
-fn transform_slug_and_name(name: &str, api_slug: &str, year: u32) -> (String, String) {
+/// New slug format: {base-slug}-{denomination}-{year}
+/// Examples:
+/// - us-flags-2023 → us-flags-forever-2023
+/// - apples-2 (Postcard) → apples-postcard-forever-2013
+/// - apples (1¢) → apples-1c-2016
+/// - statue-of-freedom ($1) → statue-of-freedom-1d-2018
+fn transform_slug_and_name(
+    name: &str,
+    api_slug: &str,
+    year: u32,
+    rate_type: Option<&str>,
+    rate: Option<&str>,
+) -> (String, String) {
     let mut slug = api_slug.to_string();
-    let mut transformed_name = name.to_string();
+    let transformed_name = name.to_string();
 
-    // Check for dollar prefix like "$2 "
+    // Step 1: Apply typo fixes
+    for (from, to) in SLUG_TYPO_FIXES {
+        if slug == *from {
+            slug = to.to_string();
+            break;
+        }
+    }
+
+    // Step 2: Strip year suffix if present (e.g., "us-flags-2023" → "us-flags")
+    let year_suffix = format!("-{}", year);
+    if slug.ends_with(&year_suffix) {
+        slug = slug[..slug.len() - year_suffix.len()].to_string();
+    }
+
+    // Step 3: Strip disambiguation suffix (-2, -3, etc.)
+    // But only if it's a single digit after the dash
+    if let Some(last_dash) = slug.rfind('-') {
+        let suffix = &slug[last_dash + 1..];
+        if suffix.len() == 1
+            && suffix
+                .chars()
+                .next()
+                .map(|c| c.is_ascii_digit())
+                .unwrap_or(false)
+        {
+            slug = slug[..last_dash].to_string();
+        }
+    }
+
+    // Step 4: Strip denomination prefix from slug if present (e.g., "2-floral-geometry" → "floral-geometry")
+    // Handle dollar prefix in API slug like "2-floral-geometry" for "$2 Floral Geometry"
     if let Some(rest) = name.strip_prefix('$') {
         if let Some(space_idx) = rest.find(' ') {
             let amount = &rest[..space_idx];
             if amount.chars().all(|c| c.is_ascii_digit()) {
-                // Slug should start with "N-", strip it and add "Nd" at end
-                if let Some(slug_rest) = api_slug.strip_prefix(&format!("{}-", amount)) {
-                    slug = format!("{}-{}d", slug_rest, amount);
+                if let Some(slug_rest) = slug.strip_prefix(&format!("{}-", amount)) {
+                    slug = slug_rest.to_string();
                 }
             }
         }
     }
 
-    // Check for cent prefix like "10¢" or "10c " at start
+    // Handle cent prefix in API slug like "10c-poppies" for "10¢ Poppies"
     let mut chars = name.chars().peekable();
     let mut digits = String::new();
     while let Some(&c) = chars.peek() {
@@ -710,24 +766,106 @@ fn transform_slug_and_name(name: &str, api_slug: &str, year: u32) -> (String, St
     }
     if !digits.is_empty() {
         if let Some(next) = chars.next() {
-            // Check for ¢ symbol or 'c' followed by space
             if next == '¢' || (next == 'c' && chars.peek() == Some(&' ')) {
-                // Slug should start with "Nc-", strip it and add "Nc" at end
-                if let Some(slug_rest) = api_slug.strip_prefix(&format!("{}c-", digits)) {
-                    slug = format!("{}-{}c", slug_rest, digits);
+                if let Some(slug_rest) = slug.strip_prefix(&format!("{}c-", digits)) {
+                    slug = slug_rest.to_string();
                 }
             }
         }
     }
 
-    // Check for year suffix like "-2026" and strip it, adding year to name
-    let year_suffix = format!("-{}", year);
-    if slug.ends_with(&year_suffix) {
-        slug = slug[..slug.len() - year_suffix.len()].to_string();
-        transformed_name = format!("{} ({})", name, year);
+    // Step 5: Determine denomination suffix
+    let denomination = get_denomination_suffix(api_slug, name, rate_type, rate);
+
+    // Step 6: Reconstruct slug with denomination and year
+    if let Some(denom) = denomination {
+        slug = format!("{}-{}-{}", slug, denom, year);
+    } else {
+        // No denomination available - just add year
+        slug = format!("{}-{}", slug, year);
     }
 
     (slug, transformed_name)
+}
+
+/// Determine the denomination suffix for a stamp
+/// Returns None if denomination cannot be determined
+fn get_denomination_suffix(
+    api_slug: &str,
+    name: &str,
+    rate_type: Option<&str>,
+    _rate: Option<&str>,
+) -> Option<String> {
+    // First check hardcoded overrides
+    for (override_slug, denom) in SLUG_DENOMINATION_OVERRIDES {
+        if api_slug == *override_slug {
+            return Some(denom.to_string());
+        }
+    }
+
+    // Try to extract denomination from name (e.g., "$1 Statue of Freedom" → "1d", "1¢ Apples" → "1c")
+    if let Some(denom) = extract_denomination_from_name(name) {
+        return Some(denom);
+    }
+
+    // Use rate_type to determine suffix
+    match rate_type {
+        Some("Forever") => Some("forever".to_string()),
+        Some("Postcard") => Some("postcard-forever".to_string()),
+        Some("International") | Some("Global Forever") => Some("global-forever".to_string()),
+        Some("Semipostal") => Some("semipostal".to_string()),
+        Some("Additional Ounce") => Some("additional-ounce".to_string()),
+        Some("Two Ounce") => Some("2oz".to_string()),
+        Some("Three Ounce") => Some("3oz".to_string()),
+        Some("Nonmachineable Surcharge") => Some("nonmachinable".to_string()),
+        Some("Priority Mail") => Some("priority".to_string()),
+        Some("Priority Mail Express") => Some("express".to_string()),
+        // For these types, we can't determine a simple suffix
+        Some("Other Denomination") | Some("Definitive") | Some("First Class") | Some("Special") => {
+            None
+        }
+        // Skip presorted/nonprofit as they're not consumer stamps
+        Some("Presorted First-Class") | Some("Presorted Standard") | Some("Nonprofit") => None,
+        Some("Additional Postage") => Some("additional".to_string()),
+        _ => None,
+    }
+}
+
+/// Extract denomination from stamp name
+/// "$1 Statue of Freedom" → Some("1d")
+/// "1¢ Apples" → Some("1c")
+/// "10¢ Poppies" → Some("10c")
+fn extract_denomination_from_name(name: &str) -> Option<String> {
+    // Check for dollar prefix like "$1 " or "$2 "
+    if let Some(rest) = name.strip_prefix('$') {
+        if let Some(space_idx) = rest.find(' ') {
+            let amount = &rest[..space_idx];
+            if amount.chars().all(|c| c.is_ascii_digit()) {
+                return Some(format!("{}d", amount));
+            }
+        }
+    }
+
+    // Check for cent prefix like "1¢" or "10c "
+    let mut chars = name.chars().peekable();
+    let mut digits = String::new();
+    while let Some(&c) = chars.peek() {
+        if c.is_ascii_digit() {
+            digits.push(c);
+            chars.next();
+        } else {
+            break;
+        }
+    }
+    if !digits.is_empty() {
+        if let Some(next) = chars.next() {
+            if next == '¢' || (next == 'c' && chars.peek() == Some(&' ')) {
+                return Some(format!("{}c", digits));
+            }
+        }
+    }
+
+    None
 }
 
 fn extract_image_filename(url: &str) -> String {
@@ -754,6 +892,61 @@ const ALLOWED_SHORT_NAMES: &[&str] = &[
 
 /// Known source headings (headings that should be treated as source names directly)
 const KNOWN_SOURCE_HEADINGS: &[&str] = &["Walt Disney Studios Ink & Paint Department"];
+
+/// Priority Mail Express rate overrides - corrected values for data quality
+/// All Priority Mail Express stamps MUST have an entry here or the scraper will panic
+const PRIORITY_MAIL_EXPRESS_RATE_OVERRIDES: &[(&str, &str)] = &[
+    ("star-cluster", "31.40"),
+    ("washington-monument", "12.25"),
+    ("space-shuttle-piggyback", "11.75"),
+    ("capitol-dome", "13.65"),
+    ("x-planes-express", "14.40"),
+    ("bixby-creek-bridge", "18.30"),
+    ("carmel-mission", "18.95"),
+    ("grand-central-terminal", "19.95"),
+    ("uss-arizona-memorial", "19.99"),
+    ("columbia-river-george", "22.95"), // Note: API has typo "george" instead of "gorge"
+    ("gateway-arch", "23.75"),
+    ("sleeping-bear-dunes", "24.70"),
+    ("bethesda-fountain", "24.70"),
+    ("grand-island-ice-caves", "26.35"),
+    ("palace-of-fine-arts", "26.95"),
+    ("great-smoky-mountains", "28.75"),
+    ("cosmic-cliffs", "30.45"),
+];
+
+/// Get the corrected rate for a stamp, applying Priority Mail Express overrides
+/// Panics if a Priority Mail Express stamp doesn't have a defined override
+fn get_corrected_rate(
+    slug: &str,
+    api_rate: Option<&str>,
+    rate_type: Option<&str>,
+) -> Option<String> {
+    // First, check if this slug has an override (handles all express stamps including
+    // great-smoky-mountains which has rate_type "Other Denomination")
+    for (override_slug, override_rate) in PRIORITY_MAIL_EXPRESS_RATE_OVERRIDES {
+        if *override_slug == slug {
+            return Some(override_rate.to_string());
+        }
+    }
+
+    // If rate_type is "Priority Mail Express" but no override found, panic
+    let is_priority_express = rate_type
+        .map(|rt| rt == "Priority Mail Express")
+        .unwrap_or(false);
+
+    if is_priority_express {
+        panic!(
+            "Priority Mail Express stamp '{}' does not have a rate override defined!\n\
+             Add an entry to PRIORITY_MAIL_EXPRESS_RATE_OVERRIDES in src/main.rs.\n\
+             API rate was: {:?}, rate_type: {:?}",
+            slug, api_rate, rate_type
+        );
+    }
+
+    // Not a Priority Mail Express stamp - return API rate as-is
+    api_rate.map(|r| r.to_string())
+}
 
 fn parse_credits_names(text: &str) -> Vec<String> {
     // "Existing Photos by Fiona M. Donnelly, Matthew Prosser, Martha M. Stewart, and Ross Taylor"
@@ -878,6 +1071,168 @@ mod tests {
                 "Ross Taylor"
             ]
         );
+    }
+
+    #[test]
+    fn test_get_corrected_rate_priority_mail_express() {
+        // Should return override rate for Priority Mail Express stamps
+        let rate = get_corrected_rate("star-cluster", Some("99.99"), Some("Priority Mail Express"));
+        assert_eq!(rate, Some("31.40".to_string()));
+    }
+
+    #[test]
+    fn test_get_corrected_rate_great_smoky_mountains() {
+        // great-smoky-mountains has "Other Denomination" but should still use override
+        let rate = get_corrected_rate(
+            "great-smoky-mountains",
+            Some("99.99"),
+            Some("Other Denomination"),
+        );
+        assert_eq!(rate, Some("28.75".to_string()));
+    }
+
+    #[test]
+    fn test_get_corrected_rate_regular_stamp() {
+        // Regular stamps should use API rate as-is
+        let rate = get_corrected_rate("love-2026", Some("0.73"), Some("Forever"));
+        assert_eq!(rate, Some("0.73".to_string()));
+    }
+
+    #[test]
+    fn test_get_corrected_rate_other_denomination_not_express() {
+        // Other Denomination stamps not in override list should use API rate
+        let rate = get_corrected_rate(
+            "10c-poppies-and-coneflowers",
+            Some("0.10"),
+            Some("Other Denomination"),
+        );
+        assert_eq!(rate, Some("0.10".to_string()));
+    }
+
+    #[test]
+    #[should_panic(expected = "does not have a rate override defined")]
+    fn test_get_corrected_rate_unknown_priority_mail_express_panics() {
+        // Unknown Priority Mail Express stamp should panic
+        get_corrected_rate(
+            "unknown-express-stamp",
+            Some("50.00"),
+            Some("Priority Mail Express"),
+        );
+    }
+
+    // Tests for slug transformation
+
+    #[test]
+    fn test_transform_slug_forever_with_year() {
+        // us-flags-2023 → us-flags-forever-2023
+        let (slug, _name) = transform_slug_and_name(
+            "U.S. Flag",
+            "us-flags-2023",
+            2023,
+            Some("Forever"),
+            Some("0.78"),
+        );
+        assert_eq!(slug, "us-flags-forever-2023");
+    }
+
+    #[test]
+    fn test_transform_slug_postcard() {
+        // coastal-birds → coastal-birds-postcard-forever-2015
+        let (slug, _name) = transform_slug_and_name(
+            "Coastal Birds",
+            "coastal-birds",
+            2015,
+            Some("Postcard"),
+            Some("0.61"),
+        );
+        assert_eq!(slug, "coastal-birds-postcard-forever-2015");
+    }
+
+    #[test]
+    fn test_transform_slug_disambiguation_suffix_removed() {
+        // apples-2 (Postcard) → apples-postcard-forever-2013
+        let (slug, _name) =
+            transform_slug_and_name("Apples", "apples-2", 2013, Some("Postcard"), Some("0.61"));
+        assert_eq!(slug, "apples-postcard-forever-2013");
+    }
+
+    #[test]
+    fn test_transform_slug_cent_denomination() {
+        // apples (1¢) → apples-1c-2016
+        let (slug, _name) = transform_slug_and_name(
+            "1¢ Apples",
+            "apples",
+            2016,
+            Some("Other Denomination"),
+            None,
+        );
+        assert_eq!(slug, "apples-1c-2016");
+    }
+
+    #[test]
+    fn test_transform_slug_dollar_denomination() {
+        // statue-of-freedom ($1) → statue-of-freedom-1d-2018
+        let (slug, _name) = transform_slug_and_name(
+            "$1 Statue of Freedom",
+            "statue-of-freedom",
+            2018,
+            Some("Definitive"),
+            None,
+        );
+        assert_eq!(slug, "statue-of-freedom-1d-2018");
+    }
+
+    #[test]
+    fn test_transform_slug_international() {
+        // poinsettia (International) → poinsettia-global-forever-2018
+        let (slug, _name) = transform_slug_and_name(
+            "Poinsettia",
+            "poinsettia",
+            2018,
+            Some("International"),
+            Some("1.70"),
+        );
+        assert_eq!(slug, "poinsettia-global-forever-2018");
+    }
+
+    #[test]
+    fn test_transform_slug_typo_fix() {
+        // columbia-river-george → columbia-river-gorge-express-YEAR
+        let (slug, _name) = transform_slug_and_name(
+            "Columbia River Gorge",
+            "columbia-river-george",
+            2019,
+            Some("Priority Mail Express"),
+            Some("22.95"),
+        );
+        assert_eq!(slug, "columbia-river-gorge-express-2019");
+    }
+
+    #[test]
+    fn test_transform_slug_denomination_override() {
+        // eid (null rate_type, but has override) → eid-34c-2001
+        let (slug, _name) = transform_slug_and_name("Eid", "eid", 2001, None, None);
+        assert_eq!(slug, "eid-34c-2001");
+    }
+
+    #[test]
+    fn test_transform_slug_denomination_override_forever() {
+        // eid-2 (null rate_type, but has override for forever) → eid-forever-2013
+        let (slug, _name) = transform_slug_and_name("Eid", "eid-2", 2013, None, None);
+        assert_eq!(slug, "eid-forever-2013");
+    }
+
+    #[test]
+    fn test_transform_slug_hanukkah_forever() {
+        // hanukkah-2016 → hanukkah-forever-2016
+        let (slug, _name) = transform_slug_and_name(
+            "Hanukkah",
+            "hanukkah-2016",
+            2016,
+            Some("Forever"),
+            Some("0.78"),
+        );
+        assert_eq!(slug, "hanukkah-forever-2016");
     }
 }
 
@@ -1160,9 +1515,14 @@ fn scrape_stamp_details(
     let api_url = format!("{}/{}", STAMPS_API_URL, slug);
     let detail: StampDetail = client.fetch_json(&api_url)?;
 
-    // Transform slug and name (handles year suffixes and currency prefixes)
-    let (transformed_slug, transformed_name) =
-        transform_slug_and_name(&detail.name, &detail.slug, year);
+    // Transform slug and name (adds denomination and year suffixes)
+    let (transformed_slug, transformed_name) = transform_slug_and_name(
+        &detail.name,
+        &detail.slug,
+        year,
+        detail.rate_type.as_deref(),
+        detail.rate.as_deref(),
+    );
     let stamp_dir = PathBuf::from(STAMPS_DIR)
         .join(year.to_string())
         .join(&transformed_slug);
@@ -1320,8 +1680,13 @@ fn scrape_stamp_details(
         }
     }
 
-    // Rate (numeric value, e.g., "0.78")
-    if let Some(rate) = &detail.rate {
+    // Rate (numeric value, e.g., "0.78") - apply Priority Mail Express overrides
+    let corrected_rate = get_corrected_rate(
+        &detail.slug,
+        detail.rate.as_deref(),
+        detail.rate_type.as_deref(),
+    );
+    if let Some(rate) = &corrected_rate {
         conl.push_str(&format!("rate = {}\n", rate));
     }
 
@@ -1607,7 +1972,7 @@ fn scrape_stamp_details(
         .as_ref()
         .and_then(|d| parse_date_to_iso(d));
 
-    // Insert into stamp_metadata table
+    // Insert into stamp_metadata table (use corrected_rate instead of detail.rate)
     conn.execute(
         "INSERT OR REPLACE INTO stamp_metadata
          (slug, name, url, year, issue_date, issue_location, rate, rate_type, type, series,
@@ -1623,7 +1988,7 @@ fn scrape_stamp_details(
                 .issue_location
                 .as_ref()
                 .filter(|l| !l.trim().is_empty() && l.trim() != "TBA"),
-            detail.rate,
+            corrected_rate,
             detail.rate_type,
             stamp_type,
             detail.series.as_ref().map(|s| &s.name),
@@ -1760,6 +2125,7 @@ fn main() -> Result<()> {
         Commands::Stamps { action } => match action {
             StampsAction::Sync { output } => run_stamps(&output),
             StampsAction::ScrapeDetails { filter, quiet } => run_scrape_details(filter, quiet),
+            StampsAction::Generate => generate::run_generate(),
         },
     }
 }
