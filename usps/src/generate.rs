@@ -21,10 +21,10 @@ const HIDDEN_RATE_TYPES: &[&str] = &[
 pub struct Stamp {
     pub name: String,
     pub slug: String,
+    pub api_slug: String, // Original API slug (used for folder name on disk)
     pub url: String,
     pub year: u32,
     pub issue_date: Option<String>,
-    pub issue_location: Option<String>,
     pub rate: Option<f64>,
     pub rate_type: Option<String>,
     pub stamp_type: String, // "stamp", "card", "envelope"
@@ -34,6 +34,7 @@ pub struct Stamp {
     pub credits: Credits,
     pub about: Option<String>,
     pub products: Vec<Product>,
+    pub background_color: Option<String>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -57,48 +58,44 @@ pub struct Product {
     pub images: Vec<String>,
 }
 
-/// Denomination category for grouping stamps
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub enum DenominationCategory {
-    Forever,
-    ForeverPlus, // Additional ounce, 2oz, 3oz, non-machinable
-    Postcard,
-    Global,
-    Denominated(String), // Specific cent/dollar value
-    Priority,
-    Express,
-    Other,
+/// Year page category for custom grouping on year pages
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum YearPageCategory {
+    Forever,           // Forever Stamps
+    OtherForever,      // Additional Postage + Global + Postcard Forever Stamps
+    FlatRate,          // Priority Mail + Priority Mail Express
+    Denominated,       // Denominated Stamps (sorted by value)
+    Other,             // Stamped envelopes, cards, postcards
+    Ducks,             // Catch-all for remaining stamps
 }
 
-impl DenominationCategory {
+impl YearPageCategory {
     fn from_stamp(stamp: &Stamp) -> Self {
+        // First check stamp_type for cards/envelopes
+        if stamp.stamp_type == "card" || stamp.stamp_type == "envelope" {
+            return YearPageCategory::Other;
+        }
+
         let rate_type = stamp.rate_type.as_deref().unwrap_or("");
 
         match rate_type {
-            "Forever" => DenominationCategory::Forever,
-            "Postcard" => DenominationCategory::Postcard,
-            "International" | "Global Forever" => DenominationCategory::Global,
-            "Additional Ounce" | "Two Ounce" | "Three Ounce" | "Nonmachineable Surcharge" | "Additional Postage" => {
-                DenominationCategory::ForeverPlus
-            }
-            "Priority Mail" => DenominationCategory::Priority,
-            "Priority Mail Express" => DenominationCategory::Express,
+            "Forever" | "Semipostal" => YearPageCategory::Forever,
+            "Postcard" | "International" | "Global Forever" |
+            "Additional Ounce" | "Two Ounce" | "Three Ounce" |
+            "Nonmachineable Surcharge" | "Additional Postage" => YearPageCategory::OtherForever,
+            "Priority Mail" | "Priority Mail Express" => YearPageCategory::FlatRate,
             "Definitive" | "Other Denomination" | "First Class" | "Special" => {
-                // Check if it has a specific denomination in the name
-                if let Some(denom) = extract_denomination(&stamp.name) {
-                    DenominationCategory::Denominated(denom)
-                } else if let Some(rate) = stamp.rate {
-                    DenominationCategory::Denominated(format_rate(rate))
+                if extract_denomination(&stamp.name).is_some() || stamp.rate.is_some() {
+                    YearPageCategory::Denominated
                 } else {
-                    DenominationCategory::Other
+                    YearPageCategory::Ducks
                 }
             }
-            "Semipostal" => DenominationCategory::Forever, // Group with Forever
             _ => {
-                if let Some(denom) = extract_denomination(&stamp.name) {
-                    DenominationCategory::Denominated(denom)
+                if extract_denomination(&stamp.name).is_some() {
+                    YearPageCategory::Denominated
                 } else {
-                    DenominationCategory::Other
+                    YearPageCategory::Ducks
                 }
             }
         }
@@ -106,15 +103,53 @@ impl DenominationCategory {
 
     fn display_name(&self) -> &str {
         match self {
-            DenominationCategory::Forever => "Forever Stamps",
-            DenominationCategory::ForeverPlus => "Additional Postage Forever Stamps",
-            DenominationCategory::Postcard => "Postcard Forever Stamps",
-            DenominationCategory::Global => "Global Forever Stamps",
-            DenominationCategory::Denominated(_) => "Denominated Stamps",
-            DenominationCategory::Priority => "Priority Mail Stamps",
-            DenominationCategory::Express => "Priority Mail Express Stamps",
-            DenominationCategory::Other => "Other Stamps",
+            YearPageCategory::Forever => "Forever Stamps",
+            YearPageCategory::OtherForever => "Other Forever Stamps",
+            YearPageCategory::FlatRate => "Flat Rate Envelope",
+            YearPageCategory::Denominated => "Denominated Stamps",
+            YearPageCategory::Other => "Other",
+            YearPageCategory::Ducks => "Ducks",
         }
+    }
+
+    fn sort_order(&self) -> u8 {
+        match self {
+            YearPageCategory::Forever => 0,
+            YearPageCategory::OtherForever => 1,
+            YearPageCategory::FlatRate => 2,
+            YearPageCategory::Denominated => 3,
+            YearPageCategory::Other => 4,
+            YearPageCategory::Ducks => 5,
+        }
+    }
+}
+
+/// Parse a denomination string into cents for sorting (e.g., "1¢" -> 1, "$1.00" -> 100)
+fn denomination_to_cents(denom: &str) -> u64 {
+    if denom.starts_with('$') {
+        // Parse dollar amount
+        let amount_str = denom.trim_start_matches('$');
+        if let Ok(dollars) = amount_str.parse::<f64>() {
+            return (dollars * 100.0) as u64;
+        }
+    } else if denom.ends_with('¢') {
+        // Parse cent amount
+        let cents_str = denom.trim_end_matches('¢');
+        if let Ok(cents) = cents_str.parse::<u64>() {
+            return cents;
+        }
+    }
+    u64::MAX // Unknown format sorts last
+}
+
+/// Get sort key for a stamp within its category (for denominated stamps, sort by value)
+fn stamp_sort_key(stamp: &Stamp) -> u64 {
+    if let Some(denom) = extract_denomination(&stamp.name) {
+        denomination_to_cents(&denom)
+    } else if let Some(rate) = stamp.rate {
+        (rate * 100.0) as u64
+    } else {
+        u64::MAX
     }
 }
 
@@ -392,10 +427,10 @@ fn load_stamp(conl_path: &Path) -> Result<Stamp> {
 
     let name = data.get("name").and_then(|v| v.as_str()).unwrap_or("Unknown").to_string();
     let slug = data.get("slug").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+    let api_slug = data.get("api_slug").and_then(|v| v.as_str()).unwrap_or(&slug).to_string();
     let url = data.get("url").and_then(|v| v.as_str()).unwrap_or("").to_string();
     let year = data.get("year").and_then(|v| v.as_str()).and_then(|s| s.parse().ok()).unwrap_or(0);
     let issue_date = data.get("issue_date").and_then(|v| v.as_str()).map(String::from);
-    let issue_location = data.get("issue_location").and_then(|v| v.as_str()).map(String::from);
     let rate = data.get("rate").and_then(|v| v.as_str()).and_then(|s| s.parse().ok());
     let rate_type = data.get("rate_type").and_then(|v| v.as_str()).map(String::from);
     let stamp_type = data.get("type").and_then(|v| v.as_str()).unwrap_or("stamp").to_string();
@@ -403,6 +438,7 @@ fn load_stamp(conl_path: &Path) -> Result<Stamp> {
     let stamp_images = data.get("stamp_images").and_then(|v| v.as_array()).cloned().unwrap_or_default();
     let sheet_image = data.get("sheet_image").and_then(|v| v.as_str()).map(String::from);
     let about = data.get("about").and_then(|v| v.as_str()).map(String::from);
+    let background_color = data.get("background_color").and_then(|v| v.as_str()).map(String::from);
 
     // Parse credits
     let mut credits = Credits::default();
@@ -441,10 +477,10 @@ fn load_stamp(conl_path: &Path) -> Result<Stamp> {
     Ok(Stamp {
         name,
         slug,
+        api_slug,
         url,
         year,
         issue_date,
-        issue_location,
         rate,
         rate_type,
         stamp_type,
@@ -454,6 +490,7 @@ fn load_stamp(conl_path: &Path) -> Result<Stamp> {
         credits,
         about,
         products,
+        background_color,
     })
 }
 
@@ -707,7 +744,7 @@ h3 {
 }
 
 .stamp-card-image {
-    aspect-ratio: 4/3;
+    aspect-ratio: 1.3;
     background: #f0f0f0;
     display: flex;
     align-items: center;
@@ -781,11 +818,15 @@ h3 {
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 450px;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .stamp-main-image img {
-    max-width: 100%;
-    max-height: 400px;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
 }
 
@@ -813,6 +854,22 @@ h3 {
 
 .stamp-thumbnails img.active {
     border-color: var(--primary);
+}
+
+.stamp-sheet-image {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stamp-sheet-image img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
 }
 
 /* Mobile carousel for thumbnails */
@@ -1223,7 +1280,7 @@ fn stamp_card_html(stamp: &Stamp, image_base: &str) -> String {
 
     format!(
         r#"<div class="stamp-card">
-    <a href="/{}/{}/">
+    <a href="/stamps/{}/">
         <div class="stamp-card-image">{}</div>
         <div class="stamp-card-content">
             <div class="stamp-card-title">{}</div>
@@ -1232,7 +1289,6 @@ fn stamp_card_html(stamp: &Stamp, image_base: &str) -> String {
         </div>
     </a>
 </div>"#,
-        stamp.year,
         stamp.slug,
         image_html,
         html_escape(&stamp.name),
@@ -1243,7 +1299,7 @@ fn stamp_card_html(stamp: &Stamp, image_base: &str) -> String {
 
 /// Generate an individual stamp page
 fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
-    let page_dir = output_dir.join(stamp.year.to_string()).join(&stamp.slug);
+    let page_dir = output_dir.join("stamps").join(&stamp.slug);
     fs::create_dir_all(&page_dir)?;
 
     let mut html = page_header(&stamp.name, "");
@@ -1268,16 +1324,19 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
     // Main image
     let main_image = stamp.stamp_images.first().or(stamp.sheet_image.as_ref());
     if let Some(img) = main_image {
+        let bg_style = stamp.background_color.as_ref()
+            .map(|c| format!(r#" style="background-color: #{}""#, c))
+            .unwrap_or_default();
         html.push_str(&format!(
-            r#"<div class="stamp-main-image">
+            r#"<div class="stamp-main-image"{}>
     <img src="/images/{}/{}/{}" alt="{}">
 </div>"#,
-            stamp.year, stamp.slug, img, html_escape(&stamp.name)
+            bg_style, stamp.year, stamp.slug, img, html_escape(&stamp.name)
         ));
     }
 
-    // Thumbnails
-    if stamp.stamp_images.len() > 1 || (stamp.stamp_images.len() == 1 && stamp.sheet_image.is_some()) {
+    // Thumbnails (only stamp images, not sheet)
+    if stamp.stamp_images.len() > 1 {
         html.push_str(r#"<div class="stamp-thumbnails">"#);
         for img in &stamp.stamp_images {
             html.push_str(&format!(
@@ -1285,13 +1344,18 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
                 stamp.year, stamp.slug, img
             ));
         }
-        if let Some(sheet) = &stamp.sheet_image {
-            html.push_str(&format!(
-                r#"<img src="/images/{}/{}/{}" alt="Stamp sheet">"#,
-                stamp.year, stamp.slug, sheet
-            ));
-        }
         html.push_str("</div>");
+    }
+
+    // Sheet image in separate container
+    if let Some(sheet) = &stamp.sheet_image {
+        let bg_style = stamp.background_color.as_ref()
+            .map(|c| format!(r#" style="background-color: #{}""#, c))
+            .unwrap_or_default();
+        html.push_str(&format!(
+            r#"<div class="stamp-sheet-image"{}><img src="/images/{}/{}/{}" alt="Stamp sheet"></div>"#,
+            bg_style, stamp.year, stamp.slug, sheet
+        ));
     }
 
     html.push_str("</div>"); // stamp-images
@@ -1312,13 +1376,6 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
         html.push_str(&format!(
             r#"<span class="stamp-meta-label">Issue Date</span><span>{}</span>"#,
             date
-        ));
-    }
-
-    if let Some(loc) = &stamp.issue_location {
-        html.push_str(&format!(
-            r#"<span class="stamp-meta-label">Location</span><span>{}</span>"#,
-            html_escape(loc)
         ));
     }
 
@@ -1485,21 +1542,34 @@ fn generate_year_page(year: u32, stamps: &[&Stamp], all_years: &[u32], output_di
     html.push_str(&format!("<h2>{} Stamps</h2>", year));
     html.push_str(&format!("<p style=\"margin-bottom: 24px; color: var(--text-muted);\">{} stamps issued</p>", stamps.len()));
 
-    // Group by denomination category
-    let mut by_category: BTreeMap<String, Vec<&Stamp>> = BTreeMap::new();
+    // Group by year page category with custom ordering
+    let mut by_category: HashMap<YearPageCategory, Vec<&Stamp>> = HashMap::new();
     for stamp in stamps {
-        let cat = DenominationCategory::from_stamp(stamp);
-        let cat_name = cat.display_name().to_string();
-        by_category.entry(cat_name).or_default().push(stamp);
+        let cat = YearPageCategory::from_stamp(stamp);
+        by_category.entry(cat).or_default().push(stamp);
     }
 
-    for (cat_name, cat_stamps) in &by_category {
-        html.push_str(&format!("<h3>{}</h3>", cat_name));
-        html.push_str(r#"<div class="stamp-grid">"#);
-        for stamp in cat_stamps {
-            html.push_str(&stamp_card_html(stamp, "/images"));
+    // Sort categories by custom order
+    let mut categories: Vec<YearPageCategory> = by_category.keys().cloned().collect();
+    categories.sort_by_key(|c| c.sort_order());
+
+    for cat in categories {
+        if let Some(mut cat_stamps) = by_category.remove(&cat) {
+            // Sort denominated stamps by value (ascending)
+            if cat == YearPageCategory::Denominated {
+                cat_stamps.sort_by_key(|s| stamp_sort_key(s));
+            }
+            // Skip empty categories
+            if cat_stamps.is_empty() {
+                continue;
+            }
+            html.push_str(&format!("<h3>{}</h3>", cat.display_name()));
+            html.push_str(r#"<div class="stamp-grid">"#);
+            for stamp in &cat_stamps {
+                html.push_str(&stamp_card_html(stamp, "/images"));
+            }
+            html.push_str("</div>");
         }
-        html.push_str("</div>");
     }
 
     html.push_str(page_footer());
@@ -1827,7 +1897,8 @@ fn symlink_images(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
 
     for stamp in stamps {
         let stamp_images_dir = images_dir.join(stamp.year.to_string()).join(&stamp.slug);
-        let source_dir = data_dir.join(stamp.year.to_string()).join(&stamp.slug);
+        // Use api_slug for source since that's the folder name on disk
+        let source_dir = data_dir.join(stamp.year.to_string()).join(&stamp.api_slug);
 
         if !source_dir.exists() {
             continue;
@@ -1869,7 +1940,7 @@ pub fn run_generate() -> Result<()> {
     println!("Loaded {} stamps", stamps.len());
 
     if stamps.is_empty() {
-        println!("No stamps found. Run 'usps-rates stamps scrape-details' first.");
+        println!("No stamps found. Run 'usps-rates stamps scrape' first.");
         return Ok(());
     }
 

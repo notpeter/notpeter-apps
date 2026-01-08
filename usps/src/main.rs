@@ -1,13 +1,19 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use rusqlite::Connection;
+use std::fs;
+use std::path::Path;
 
+mod conl_ser;
 mod enrichment;
 mod generate;
 mod scrape;
 mod simple;
 mod sync;
+mod types;
 mod utils;
+
+pub use types::*;
 
 pub const STAMPS_API_URL: &str = "https://admin.stampsforever.com/api/stamp-issuances";
 pub const MIN_SCRAPE_YEAR: u32 = 1996;
@@ -83,14 +89,14 @@ enum Commands {
 
 #[derive(Subcommand)]
 enum StampsAction {
-    /// Build/update the stamps SQLite database
+    /// Build/update the stamps SQLite database from API
     Sync {
         /// Output SQLite database file
         #[arg(short, long, default_value = "stamps.db")]
         output: String,
     },
     /// Scrape detailed stamp info, images, and metadata
-    ScrapeDetails {
+    Scrape {
         /// Specific stamp slug or year (e.g., "love-2026" or "2025")
         #[arg(value_name = "SLUG_OR_YEAR")]
         filter: Option<String>,
@@ -108,7 +114,12 @@ enum StampsAction {
         /// Quiet mode - suppress progress output
         #[arg(short, long)]
         quiet: bool,
+        /// Force regeneration of existing enrichment data
+        #[arg(short, long)]
+        force: bool,
     },
+    /// Clean generated files (stamps.db and data/ folder)
+    Clean,
 }
 
 /// Detect stamp type based on name
@@ -125,77 +136,30 @@ pub fn detect_stamp_type(name: &str) -> &'static str {
 }
 
 pub fn init_database(conn: &Connection) -> Result<()> {
-    // Create stamps table (basic info from API listing)
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS stamps (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            rate TEXT,
-            year INTEGER,
-            issue_date TEXT,
-            issue_location TEXT,
-            forever_url TEXT NOT NULL,
-            forever_slug TEXT NOT NULL UNIQUE,
-            type TEXT NOT NULL DEFAULT 'stamp'
-        )",
-        [],
-    )?;
+    // Read and execute schema from SQL file
+    let schema = include_str!("../schema.sql");
+    conn.execute_batch(schema)?;
+    Ok(())
+}
 
-    // Create stamp_metadata table (detailed info from scraping)
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS stamp_metadata (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            slug TEXT NOT NULL UNIQUE,
-            name TEXT NOT NULL,
-            url TEXT NOT NULL,
-            year INTEGER NOT NULL,
-            issue_date TEXT,
-            issue_location TEXT,
-            rate TEXT,
-            rate_type TEXT,
-            type TEXT NOT NULL DEFAULT 'stamp',
-            series TEXT,
-            stamp_images JSONB,
-            sheet_image TEXT,
-            credits JSONB,
-            about TEXT,
-            created_at TEXT DEFAULT (datetime('now')),
-            updated_at TEXT DEFAULT (datetime('now'))
-        )",
-        [],
-    )?;
+fn run_clean() -> Result<()> {
+    println!("Cleaning generated files...");
 
-    // Create index for year lookups
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_stamp_metadata_year ON stamp_metadata(year)",
-        [],
-    )?;
+    // Remove stamps.db
+    let db_path = Path::new("stamps.db");
+    if db_path.exists() {
+        fs::remove_file(db_path)?;
+        println!("  Removed stamps.db");
+    }
 
-    // Create products table (purchasable items from stamp pages)
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS products (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            stamp_slug TEXT NOT NULL,
-            year INTEGER NOT NULL,
-            title TEXT NOT NULL,
-            long_title TEXT,
-            price TEXT,
-            postal_store_url TEXT,
-            stamps_forever_url TEXT,
-            images JSONB,
-            created_at TEXT DEFAULT (datetime('now')),
-            updated_at TEXT DEFAULT (datetime('now')),
-            UNIQUE(stamp_slug, title)
-        )",
-        [],
-    )?;
+    // Remove data/ folder
+    let data_path = Path::new("data");
+    if data_path.exists() {
+        fs::remove_dir_all(data_path)?;
+        println!("  Removed data/");
+    }
 
-    // Create index for stamp_slug lookups
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_products_stamp_slug ON products(stamp_slug)",
-        [],
-    )?;
-
+    println!("Clean complete!");
     Ok(())
 }
 
@@ -206,9 +170,12 @@ fn main() -> Result<()> {
         Commands::Simple => simple::run_simple(),
         Commands::Stamps { action } => match action {
             StampsAction::Sync { output } => sync::run_sync(&output),
-            StampsAction::ScrapeDetails { filter, quiet } => scrape::run_scrape_details(filter, quiet),
+            StampsAction::Scrape { filter, quiet } => scrape::run_scrape(filter, quiet),
             StampsAction::Generate => generate::run_generate(),
-            StampsAction::Enrich { filter, quiet } => enrichment::run_enrich(filter, quiet),
+            StampsAction::Enrich { filter, quiet, force } => {
+                enrichment::run_enrich(filter, quiet, force)
+            }
+            StampsAction::Clean => run_clean(),
         },
     }
 }

@@ -25,3 +25,5 @@ about = """md
   A description
   On multiple lines
 ```
+
+Rust Crate: [`conl`](https://crates.io/crates/conl).

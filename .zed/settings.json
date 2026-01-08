@@ -1,7 +1,21 @@
 {
   "languages": {
-    "HTML": {
-      "format_on_save": "off",
-    },
+    "HTML": { "format_on_save": "off" },
+    "JSON": { "format_on_save": "off" },
   },
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.svn",
+    "**/.hg",
+    "**/.jj",
+    "**/.sl",
+    "**/.repo",
+    "**/CVS",
+    "**/.DS_Store",
+    "**/Thumbs.db",
+    "**/.classpath",
+    "**/.settings",
+    // custom
+    // "usps/data/llms",
+  ],
 }
