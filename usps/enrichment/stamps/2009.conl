@@ -8,3 +8,21 @@ flag-2
 kwanzaa-4
   rate = 0.44
   rate_type = Definitive
+
+grand-teton-national-park-wyoming
+  rate = 0.98
+
+zion-national-park-utah
+  rate = 1.70
+
+redwood-forest
+  rate = 4.95
+
+old-faithful
+  rate = 17.50
+
+mary-lasker
+  rate = 0.78
+
+wedding-cake-4
+  rate = 1.07

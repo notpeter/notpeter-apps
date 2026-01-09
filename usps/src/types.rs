@@ -29,6 +29,8 @@ pub enum RateType {
     #[serde(rename = "Presorted Standard")]
     PresortedStandard,
     Nonprofit,
+    #[serde(rename = "First Class")]
+    FirstClass,
     #[serde(other)]
     Other,
 }
@@ -51,6 +53,7 @@ impl RateType {
             RateType::PresortedFirstClass => "Presorted First-Class",
             RateType::PresortedStandard => "Presorted Standard",
             RateType::Nonprofit => "Nonprofit",
+            RateType::FirstClass => "First Class",
             RateType::Other => "Other",
         }
     }
@@ -72,6 +75,7 @@ impl RateType {
             "Presorted First-Class" => RateType::PresortedFirstClass,
             "Presorted Standard" => RateType::PresortedStandard,
             "Nonprofit" => RateType::Nonprofit,
+            "First Class" => RateType::FirstClass,
             _ => RateType::Other,
         }
     }

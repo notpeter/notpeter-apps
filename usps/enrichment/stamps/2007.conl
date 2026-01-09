@@ -1,18 +1,43 @@
 ; Overrides for 2007
 ; Format: api-slug followed by indented field = value
 
-celebrate
-  rate = 0.41
-  rate_type = Definitive
-
-gerald-r-ford
-  rate = 0.41
-  rate_type = Definitive
-
-jury-duty
-  rate = 0.41
-  rate_type = Definitive
-
 patriotic-banner
   rate = 0.10
   rate_type = Definitive
+
+hagatna-bay-guam
+  rate = 0.90
+  rate_type = International
+
+okefenokee-swamp-georgiaflorida
+  rate = 0.69
+  rate_type = International
+
+american-flag
+  forever = false
+
+forever-stamp-liberty-bell
+  rate_type = Forever
+
+international-polar-year-souvenir-sheet
+  slug = international-polar-year
+  rate = 0.84
+
+bighorn-sheep-1
+  rate_type = Additional Ounce
+
+tiffany-lamp
+  rate = 0.01
+
+harriet-beecher-stowe
+  rate_type = Two Ounce
+
+air-force-one
+  rate_type = Priority Mail
+  rate = 4.60
+
+pink-heart
+  rate_type = Two Ounce
+
+margaret-chase-smith
+  rate_type = Two Ounce

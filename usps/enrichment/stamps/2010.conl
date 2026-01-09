@@ -6,5 +6,71 @@ bill-mauldin
   rate_type = Definitive
 
 scouting
-  rate = 0.44
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+
+evergreens
+  rate_type = Forever
+
+julia-de-burgos
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+
+mother-teresa
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+
+hawaiian-rain-forest
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+
+mackinac-bridge-1
+  rate = 4.90
+boys-in-a-pasture-by-winslow-homer
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+negro-leagues-baseball
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+oscar-micheaux
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+kate-smith
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+monarch-butterfly
+  rate = 0.64
+  rate_type = Two Ounce
+katharine-hepburn
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+animal-rescue-adopt-a-shelter-pet
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+pansies-in-a-basket
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+cowboys-of-the-silver-screen
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+flags-of-our-nation-set-4
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+abstract-expressionists
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+sunday-funnies
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+distinguished-sailors
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+olympic-games-winter-5
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+year-of-the-tiger-2010
+  rate = 0.44 ; first-class
+  rate_type = Definitive
+angel-with-lute-detail-of-fresco-by-melozzo-da-forli
+  rate = 0.44 ; first-class
   rate_type = Definitive

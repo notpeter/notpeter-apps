@@ -6,6 +6,7 @@ use std::path::Path;
 
 mod enrichment;
 mod generate;
+mod rates;
 mod scrape;
 mod simple;
 mod sync;

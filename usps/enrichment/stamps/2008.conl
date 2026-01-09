@@ -1,22 +1,39 @@
 ; Overrides for 2008
 ; Format: api-slug followed by indented field = value
 
+tropical-fruit
+  rate_type = Postcard
+
 flags-247
   rate = 0.42
-  rate_type = Definitive
 
-flags-of-our-nation-set-1
+american-journalists
   rate = 0.42
-  rate_type = Definitive
-
-latin-jazz
-  rate = 0.42
-  rate_type = Definitive
-
-take-me-out-to-the-ballgame
-  rate = 0.42
-  rate_type = Definitive
 
 vintage-black-cinema
   rate = 0.41
-  rate_type = Definitive
+
+hoover-dam
+  rate_type = Priority Mail Express
+  rate = 16.50
+
+buff-heart
+  rate_type = Two Ounce
+
+mount-rushmore
+  rate_type = Priority Mail
+  rate = 4.80
+
+dragonfly
+  rate_type = Two Ounce
+
+st-john-virgin-islands
+  rate_type = International
+  rate = 0.94
+
+edward-trudeau
+  rate_type = Three Ounce
+  forever = false
+
+james-a-michener
+  rate_type = Two Ounce

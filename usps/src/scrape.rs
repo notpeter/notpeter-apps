@@ -7,6 +7,7 @@ use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
 
+use crate::rates::PostalRates;
 use crate::types::{Credits, Product, RateType, StampMetadata, StampType};
 use crate::utils::{osc8_file_link, osc8_link};
 use crate::{detect_stamp_type, init_database, parse_date_to_iso, MIN_SCRAPE_YEAR, STAMPS_API_URL};
@@ -50,6 +51,7 @@ const VALID_RATE_TYPES: &[&str] = &[
     "Presorted First-Class",
     "Presorted Standard",
     "Nonprofit",
+    "First Class", // Historical 1oz letter rate - inferred from issue_date
 ];
 
 /// Load all overrides from year-based CONL files in enrichment/stamps/
@@ -675,6 +677,7 @@ fn scrape_stamp(
     total: usize,
     quiet: bool,
     overrides: &HashMap<u32, HashMap<String, StampOverrides>>,
+    postal_rates: &PostalRates,
 ) -> Result<()> {
     let mut stdout = io::stdout();
     let forever_url = format!("https://www.stampsforever.com/stamps/{}", api_slug);
@@ -771,20 +774,17 @@ fn scrape_stamp(
         print!("] ");
     }
 
-    // Warn about missing required fields not provided by API or overrides
-    let mut missing_fields = Vec::new();
+    // Default rate_type to "First Class" if not specified
     if detail.rate_type.is_none() {
-        missing_fields.push("rate_type");
+        detail.rate_type = Some("First Class".to_string());
     }
+
+    // Warn about missing required fields not provided by API or overrides
     if detail.issue_date.is_none() {
-        missing_fields.push("issue_date");
-    }
-    if !missing_fields.is_empty() {
         eprintln!(
-            "  WARNING: '{}' ({}) missing: {}",
+            "  WARNING: '{}' ({}) missing: issue_date",
             api_slug,
-            year,
-            missing_fields.join(", ")
+            year
         );
     }
 
@@ -897,8 +897,41 @@ fn scrape_stamp(
 
     // Get corrected rate (current rate for forever stamps, API rate for denominated)
     // If there's an explicit rate override, use it directly instead of calculating
+    // Special cases: historical rate lookup based on issue_date when forever=false
     let corrected_rate = if let Some(ref override_rate) = rate_override {
         Some(override_rate.clone())
+    } else if detail.rate_type.as_deref() == Some("First Class") {
+        // Look up historical 1oz letter rate based on issue_date
+        issue_date
+            .as_ref()
+            .and_then(|d| postal_rates.letter.rate_on_date_str(d))
+            .map(|r| format!("{:.2}", r))
+    } else if matches!(detail.rate_type.as_deref(), Some("Additional Ounce") | Some("Additional Postage"))
+        && forever_override == Some(false)
+    {
+        // Look up historical additional ounce rate based on issue_date (non-forever only)
+        issue_date
+            .as_ref()
+            .and_then(|d| postal_rates.ounce.rate_on_date_str(d))
+            .map(|r| format!("{:.2}", r))
+    } else if detail.rate_type.as_deref() == Some("Two Ounce") && forever_override == Some(false) {
+        // Look up historical 2oz rate based on issue_date (non-forever only)
+        issue_date
+            .as_ref()
+            .and_then(|d| postal_rates.letter_2oz_str(d))
+            .map(|r| format!("{:.2}", r))
+    } else if detail.rate_type.as_deref() == Some("Three Ounce") && forever_override == Some(false) {
+        // Look up historical 3oz rate based on issue_date (non-forever only)
+        issue_date
+            .as_ref()
+            .and_then(|d| postal_rates.letter_3oz_str(d))
+            .map(|r| format!("{:.2}", r))
+    } else if detail.rate_type.as_deref() == Some("Postcard") && forever_override == Some(false) {
+        // Look up historical postcard rate based on issue_date (non-forever only)
+        issue_date
+            .as_ref()
+            .and_then(|d| postal_rates.postcard_str(d))
+            .map(|r| format!("{:.2}", r))
     } else {
         get_corrected_rate(
             api_slug,
@@ -1193,6 +1226,9 @@ pub fn run_scrape(filter: Option<String>, quiet: bool) -> Result<()> {
     // Load overrides
     let overrides = load_overrides();
 
+    // Load historical postal rates
+    let postal_rates = PostalRates::load()?;
+
     // Get current year for default range
     let current_year: u32 = 2026;
 
@@ -1282,7 +1318,7 @@ pub fn run_scrape(filter: Option<String>, quiet: bool) -> Result<()> {
     }
 
     for (i, (slug, year)) in stamps.iter().enumerate() {
-        if let Err(e) = scrape_stamp(&client, &conn, slug, *year, i + 1, total, quiet, &overrides) {
+        if let Err(e) = scrape_stamp(&client, &conn, slug, *year, i + 1, total, quiet, &overrides, &postal_rates) {
             eprintln!("\nError scraping {}: {}", slug, e);
         }
     }
