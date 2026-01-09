@@ -2,11 +2,11 @@ use anyhow::{bail, Context, Result};
 use rusqlite::Connection;
 use scraper::Html;
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
 
-use crate::conl_ser::ToConl;
 use crate::types::{Credits, Product, RateType, StampMetadata, StampType};
 use crate::utils::{osc8_file_link, osc8_link};
 use crate::{detect_stamp_type, init_database, parse_date_to_iso, MIN_SCRAPE_YEAR, STAMPS_API_URL};
@@ -71,77 +71,34 @@ fn lookup_enrichment(api_slug: &str, image_filename: &str, year: u32) -> Option<
 }
 
 /// Override data for a stamp (loaded from enrichment/overrides.conl)
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+#[allow(dead_code)]
 struct StampOverrides {
     rate_type: Option<String>,
     rate: Option<String>,
     issue_date: Option<String>,
     issue_location: Option<String>,
+    slug: Option<String>,
+    forever: Option<bool>,
+    extra_cost: Option<u32>,
+    issued: Option<String>,
 }
 
-use std::collections::HashMap;
-
-/// Load all overrides from the CONL file
+/// Load all overrides from the CONL file using serde_conl
 fn load_overrides() -> HashMap<String, StampOverrides> {
-    let mut overrides = HashMap::new();
-
     let content = match fs::read_to_string(OVERRIDES_FILE) {
         Ok(c) => c,
-        Err(_) => return overrides,
+        Err(_) => return HashMap::new(),
     };
 
-    let mut current_slug: Option<String> = None;
-    let mut current_overrides = StampOverrides::default();
-
-    for line in content.lines() {
-        let trimmed = line.trim();
-
-        // Skip empty lines and comments
-        if trimmed.is_empty() || trimmed.starts_with(';') {
-            continue;
-        }
-
-        // Check if this is a slug line (no indentation, no =)
-        if !line.starts_with(' ') && !line.starts_with('\t') && !trimmed.contains('=') {
-            // Save previous slug's overrides
-            if let Some(slug) = current_slug.take() {
-                if current_overrides.rate_type.is_some()
-                    || current_overrides.rate.is_some()
-                    || current_overrides.issue_date.is_some()
-                    || current_overrides.issue_location.is_some()
-                {
-                    overrides.insert(slug, current_overrides.clone());
-                }
-            }
-            current_slug = Some(trimmed.to_string());
-            current_overrides = StampOverrides::default();
-        } else if let Some((key, value)) = trimmed.split_once('=') {
-            // Parse key = value
-            let key = key.trim();
-            let value = value.trim();
-
-            match key {
-                "rate_type" => current_overrides.rate_type = Some(value.to_string()),
-                "rate" => current_overrides.rate = Some(value.to_string()),
-                "issue_date" => current_overrides.issue_date = Some(value.to_string()),
-                "issue_location" => current_overrides.issue_location = Some(value.to_string()),
-                _ => {}
-            }
+    match serde_conl::from_str(&content) {
+        Ok(overrides) => overrides,
+        Err(e) => {
+            eprintln!("Warning: Failed to parse {}: {}", OVERRIDES_FILE, e);
+            HashMap::new()
         }
     }
-
-    // Save last slug's overrides
-    if let Some(slug) = current_slug {
-        if current_overrides.rate_type.is_some()
-            || current_overrides.rate.is_some()
-            || current_overrides.issue_date.is_some()
-            || current_overrides.issue_location.is_some()
-        {
-            overrides.insert(slug, current_overrides);
-        }
-    }
-
-    overrides
 }
 
 // Detailed stamp API response types
@@ -923,7 +880,7 @@ fn scrape_stamp(
     }
 
     // Serialize metadata to CONL and write
-    let conl = metadata.to_conl();
+    let conl = serde_conl::to_string(&metadata)?;
     let metadata_path = stamp_dir.join("metadata.conl");
     fs::write(&metadata_path, &conl)?;
 

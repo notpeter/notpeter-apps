@@ -15,3 +15,4 @@ rusqlite = { version = "0.32", features = ["bundled"] }
 base64 = "0.22"
 chrono = "0.4"
 conl = "1.6"
+serde_conl = { git = "https://github.com/ConradIrwin/serde_conl", rev = "27ab9231ced859e1fd82bc8d9ac00e5e767143d2" }

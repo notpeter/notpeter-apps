@@ -4,7 +4,6 @@ use rusqlite::Connection;
 use std::fs;
 use std::path::Path;
 
-mod conl_ser;
 mod enrichment;
 mod generate;
 mod scrape;

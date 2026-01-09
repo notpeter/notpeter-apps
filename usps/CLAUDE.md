@@ -4,6 +4,10 @@
 - Ask before adding project dependencies
 - You are coding something in rust -- you may use other languages, shell, shell commands, etc to explore data, but all programmatic output should ultimately become rust code.
 
+## Rust
+
+- Never use `#[allow(dead_code)]` to suppress warnings.
+
 ## CONL Format
 
 For details of the CONL configuration file format see the conl/ directory:

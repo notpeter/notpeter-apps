@@ -1453,6 +1453,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_conl"
+version = "0.6.0"
+source = "git+https://github.com/ConradIrwin/serde_conl?rev=27ab9231ced859e1fd82bc8d9ac00e5e767143d2#27ab9231ced859e1fd82bc8d9ac00e5e767143d2"
+dependencies = [
+ "base64",
+ "conl",
+ "serde",
+]
+
+[[package]]
 name = "serde_core"
 version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1836,6 +1846,7 @@ dependencies = [
  "rusqlite",
  "scraper",
  "serde",
+ "serde_conl",
  "serde_json",
 ]
 
