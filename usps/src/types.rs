@@ -186,6 +186,8 @@ pub struct StampMetadata {
     pub rate: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rate_type: Option<RateType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub extra_cost: Option<f64>,
 
     pub forever: bool,
 

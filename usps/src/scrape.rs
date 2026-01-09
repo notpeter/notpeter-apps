@@ -640,7 +640,10 @@ fn generate_slug(api_slug: &str, year: u32, rate_type: Option<&str>, rate: Optio
                 if parts.len() == 2 {
                     let dollars: u32 = parts[0].parse().ok()?;
                     let cents: u32 = parts[1].parse().ok()?;
-                    if cents == 0 {
+                    if dollars == 0 {
+                        // Sub-dollar: just cents (e.g., "46c" not "0d46c")
+                        Some(format!("{}c", cents))
+                    } else if cents == 0 {
                         Some(format!("{}d", dollars))
                     } else {
                         Some(format!("{}d{:02}c", dollars, cents))
@@ -692,6 +695,12 @@ fn scrape_stamp(
     let mut detail: StampDetail = client.fetch_json(&api_url)?;
 
     // Apply overrides from enrichment/stamps/{year}.conl
+    let mut slug_override: Option<String> = None;
+    let mut forever_override: Option<bool> = None;
+    let mut stamp_type_override: Option<String> = None;
+    let mut extra_cost: Option<f64> = None;
+    let mut rate_override: Option<String> = None;
+
     if let Some(year_overrides) = overrides.get(&year) {
         if let Some(stamp_overrides) = year_overrides.get(api_slug) {
             if let Some(ref rt) = stamp_overrides.rate_type {
@@ -699,13 +708,25 @@ fn scrape_stamp(
             }
             if let Some(ref r) = stamp_overrides.rate {
                 detail.rate = Some(r.clone());
+                rate_override = Some(r.clone());
             }
             if let Some(ref id) = stamp_overrides.issue_date {
                 detail.issue_date = Some(id.clone());
             }
+            // Use 'issued' as fallback for issue_date
+            if detail.issue_date.is_none() {
+                if let Some(ref issued) = stamp_overrides.issued {
+                    detail.issue_date = Some(issued.clone());
+                }
+            }
             if let Some(ref il) = stamp_overrides.issue_location {
                 detail.issue_location = Some(il.clone());
             }
+            // Extract overrides that are applied later
+            slug_override = stamp_overrides.slug.clone();
+            forever_override = stamp_overrides.forever;
+            stamp_type_override = stamp_overrides.stamp_type.clone();
+            extra_cost = stamp_overrides.extra_cost;
         }
     }
 
@@ -768,7 +789,11 @@ fn scrape_stamp(
     }
 
     // Generate slug based on rate_type and rate
-    let (slug, is_forever) = generate_slug(api_slug, year, detail.rate_type.as_deref(), detail.rate.as_deref());
+    let (computed_slug, computed_forever) = generate_slug(api_slug, year, detail.rate_type.as_deref(), detail.rate.as_deref());
+
+    // Apply slug and forever overrides
+    let slug = slug_override.unwrap_or(computed_slug);
+    let is_forever = forever_override.unwrap_or(computed_forever);
 
     // Parse credits
     let mut art_director: Option<String> = None;
@@ -871,17 +896,26 @@ fn scrape_stamp(
     });
 
     // Get corrected rate (current rate for forever stamps, API rate for denominated)
-    let corrected_rate = get_corrected_rate(
-        api_slug,
-        detail.rate.as_deref(),
-        detail.rate_type.as_deref(),
-    );
+    // If there's an explicit rate override, use it directly instead of calculating
+    let corrected_rate = if let Some(ref override_rate) = rate_override {
+        Some(override_rate.clone())
+    } else {
+        get_corrected_rate(
+            api_slug,
+            detail.rate.as_deref(),
+            detail.rate_type.as_deref(),
+        )
+    };
     let rate: Option<f64> = corrected_rate.as_ref().and_then(|r| r.parse().ok());
     let rate_type = detail.rate_type.as_ref().map(|rt| RateType::from_str(rt));
 
-    // Detect stamp type
-    let stamp_type_str = detect_stamp_type(&detail.name);
-    let stamp_type = StampType::from_str(stamp_type_str);
+    // Detect stamp type (with override support)
+    let stamp_type = if let Some(ref st) = stamp_type_override {
+        StampType::from_str(st)
+    } else {
+        let stamp_type_str = detect_stamp_type(&detail.name);
+        StampType::from_str(stamp_type_str)
+    };
 
     // Build credits struct
     let credits = Credits {
@@ -918,6 +952,7 @@ fn scrape_stamp(
         issue_location,
         rate,
         rate_type,
+        extra_cost,
         forever: is_forever,
         stamp_type,
         series: detail.series.as_ref().map(|s| s.name.clone()),

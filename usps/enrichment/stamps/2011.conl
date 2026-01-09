@@ -10,3 +10,32 @@ save-vanishing-species
 patriotic-quill-and-inkwell
   rate = 0.44
   rate_type = Definitive
+
+replica-of-statue-of-liberty-las-vegas
+  rate_type = Forever
+
+voyageurs-national-park-minnesota ; airmail canada/mexico
+  rate = 0.80
+  rate_type = International
+
+new-river-gorge-bridge
+  rate  = 4.95
+
+flags-of-our-nation-set-5
+  rate_type = Forever
+
+oveta-culp-hobby
+  rate = 0.84
+  rate_type = Three Ounce
+
+george-washington-by-gilbert-stuart
+  rate = 0.20
+  rate_type = Additional Ounce
+
+herbs
+  rate = 0.29
+  rate_type = Postcard
+
+common-terns-stamped-card
+  rate = 0.29
+  rate_type = Postcard

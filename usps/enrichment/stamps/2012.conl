@@ -4,3 +4,43 @@
 bobcat
   rate = 0.01
   rate_type = Definitive
+10-waves-of-color
+  rate = 10.00
+  rate_type = Definitive
+5-waves-of-color
+  rate = 5.00
+  rate_type = Definitive
+2-waves-of-color
+  rate = 2.00
+  rate_type = Definitive
+1-waves-of-color
+  rate = 1.00
+  rate_type = Definitive
+sunshine-skyway-bridge
+  rate = 5.15
+carmel-mission
+  rate = 18.95
+jose-ferrer-1
+  rate_type = Forever
+flowers-by-william-h-johnson
+  rate_type = Forever
+four-flags
+  rate_type = Forever
+baltimore-checkerspot
+  rate_type = Two Ounce
+  rate = 0.65
+lancaster-county-pennsylvania-1 ; airmail 1oz non-canda/mexico
+  rate = 1.05
+  rate_type = International
+  forever = false
+glacier-national-park-montana ; airmail 1oz mexico/canada
+  rate = 0.85
+  rate_type = International
+  forever = false
+weather-vanes
+  rate = 0.45
+  rate_type = Definitive
+aloha-shirts
+  rate = 0.32
+  forever = false
+sailboat-stamped-card

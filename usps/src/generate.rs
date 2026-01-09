@@ -27,7 +27,9 @@ pub struct Stamp {
     pub issue_date: Option<String>,
     pub rate: Option<f64>,
     pub rate_type: Option<String>,
-    pub stamp_type: String, // "stamp", "card", "envelope"
+    pub extra_cost: Option<f64>, // Semipostal donation amount
+    pub forever: bool,           // Whether this is a forever stamp
+    pub stamp_type: String,      // "stamp", "card", "envelope"
     pub series: Option<String>,
     pub stamp_images: Vec<String>,
     pub sheet_image: Option<String>,
@@ -171,6 +173,11 @@ impl YearPageCategory {
             return YearPageCategory::Other;
         }
 
+        // Non-forever stamps are always denominated (historical stamps with fixed rates)
+        if !stamp.forever {
+            return YearPageCategory::Denominated;
+        }
+
         let rate_type = stamp.rate_type.as_deref().unwrap_or("");
 
         match rate_type {
@@ -245,7 +252,9 @@ fn stamp_sort_key(stamp: &Stamp) -> u64 {
     if let Some(denom) = extract_denomination(&stamp.name) {
         denomination_to_cents(&denom)
     } else if let Some(rate) = stamp.rate {
-        (rate * 100.0) as u64
+        // Include extra_cost for semipostals
+        let total = rate + stamp.extra_cost.unwrap_or(0.0);
+        (total * 100.0) as u64
     } else {
         u64::MAX
     }
@@ -567,6 +576,15 @@ fn load_stamp(conl_path: &Path) -> Result<Stamp> {
         .get("rate_type")
         .and_then(|v| v.as_str())
         .map(String::from);
+    let extra_cost = data
+        .get("extra_cost")
+        .and_then(|v| v.as_str())
+        .and_then(|s| s.parse().ok());
+    let forever = data
+        .get("forever")
+        .and_then(|v| v.as_str())
+        .map(|s| s == "true")
+        .unwrap_or(true); // Default to true for backwards compatibility
     let stamp_type = data
         .get("type")
         .and_then(|v| v.as_str())
@@ -689,6 +707,8 @@ fn load_stamp(conl_path: &Path) -> Result<Stamp> {
         issue_date,
         rate,
         rate_type,
+        extra_cost,
+        forever,
         stamp_type,
         series,
         stamp_images,
@@ -1561,7 +1581,9 @@ fn stamp_card_html(stamp: &Stamp, image_base: &str) -> String {
 
     // Rate badge for denominated stamps (shown in content area, lower left)
     let rate_html = if let Some(rate) = stamp.rate {
-        let rate_str = format_rate(rate);
+        // Show combined rate for semipostals with extra_cost
+        let total_rate = rate + stamp.extra_cost.unwrap_or(0.0);
+        let rate_str = format_rate(total_rate);
         let available_class = if !stamp.products.is_empty() {
             " available"
         } else {
@@ -1708,9 +1730,21 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
     }
 
     if let Some(rate) = stamp.rate {
+        let rate_display = if let Some(extra) = stamp.extra_cost {
+            // Semipostal: show total with breakdown
+            let total = rate + extra;
+            format!(
+                "{} ({} + {} donation)",
+                format_rate(total),
+                format_rate(rate),
+                format_rate(extra)
+            )
+        } else {
+            format_rate(rate)
+        };
         html.push_str(&format!(
             r#"<span class="stamp-meta-label">Rate</span><span>{}</span>"#,
-            format_rate(rate)
+            rate_display
         ));
     }
 
@@ -1924,19 +1958,81 @@ fn generate_year_page(
     Ok(())
 }
 
+/// Sort mode for category pages
+enum CategorySort {
+    /// Default: year desc, issue_date desc, name asc
+    Default,
+    /// Sort by rate descending
+    RateDescending,
+    /// Group by rate_type, then year descending within each group
+    GroupByRateType,
+    /// Sort by (is_forever desc, year desc) - forever stamps first, then by year
+    ForeverThenYear,
+}
+
 /// Generate a category page (forever stamps, etc.)
 fn generate_category_page(
     category: &str,
     title: &str,
     filter_fn: impl Fn(&Stamp) -> bool,
+    sort_mode: CategorySort,
     stamps: &[Stamp],
     output_dir: &Path,
 ) -> Result<()> {
     let page_dir = output_dir.join(category);
     fs::create_dir_all(&page_dir)?;
 
-    let filtered: Vec<&Stamp> = stamps.iter().filter(|s| filter_fn(s)).collect();
+    let mut filtered: Vec<&Stamp> = stamps.iter().filter(|s| filter_fn(s)).collect();
     let total_count = filtered.len();
+
+    // Apply category-specific sorting
+    match sort_mode {
+        CategorySort::Default => {
+            // Already sorted by load_all_stamps (year desc, issue_date desc, name)
+        }
+        CategorySort::RateDescending => {
+            filtered.sort_by(|a, b| {
+                // Sort by rate descending, then by year desc, then name
+                let rate_a = a.rate.unwrap_or(0.0);
+                let rate_b = b.rate.unwrap_or(0.0);
+                rate_b.partial_cmp(&rate_a)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| b.year.cmp(&a.year))
+                    .then_with(|| a.name.cmp(&b.name))
+            });
+        }
+        CategorySort::GroupByRateType => {
+            // Group order: Additional Ounce, Two Ounce, Three Ounce, then other
+            filtered.sort_by(|a, b| {
+                let type_order = |rt: Option<&str>| -> u8 {
+                    match rt {
+                        Some("Additional Ounce") | Some("Additional Postage") => 0,
+                        Some("Two Ounce") => 1,
+                        Some("Three Ounce") => 2,
+                        Some("Nonmachineable Surcharge") => 3,
+                        _ => 4,
+                    }
+                };
+                type_order(a.rate_type.as_deref())
+                    .cmp(&type_order(b.rate_type.as_deref()))
+                    .then_with(|| b.year.cmp(&a.year))
+                    .then_with(|| b.issue_date.cmp(&a.issue_date))
+                    .then_with(|| a.name.cmp(&b.name))
+            });
+        }
+        CategorySort::ForeverThenYear => {
+            // Forever stamps (no rate) first, then by year desc
+            filtered.sort_by(|a, b| {
+                let is_forever_a = a.rate.is_none();
+                let is_forever_b = b.rate.is_none();
+                // Forever (true) should come before non-forever (false)
+                is_forever_b.cmp(&is_forever_a)
+                    .then_with(|| b.year.cmp(&a.year))
+                    .then_with(|| b.issue_date.cmp(&a.issue_date))
+                    .then_with(|| a.name.cmp(&b.name))
+            });
+        }
+    }
 
     // Split into available (has products) and discontinued
     let (available, discontinued): (Vec<&Stamp>, Vec<&Stamp>) =
@@ -2337,7 +2433,7 @@ pub fn run_generate() -> Result<()> {
 
     println!("Generating category pages...");
 
-    // Forever stamps
+    // Forever stamps (default sort: year desc)
     generate_category_page(
         "forever-stamps",
         "Forever Stamps",
@@ -2345,11 +2441,12 @@ pub fn run_generate() -> Result<()> {
             matches!(s.rate_type.as_deref(), Some("Forever") | Some("Semipostal"))
                 && s.stamp_type == "stamp"
         },
+        CategorySort::Default,
         &stamps,
         &output_dir,
     )?;
 
-    // Additional postage forever stamps
+    // Additional postage forever stamps (group by type, then year desc)
     generate_category_page(
         "additional-postage-forever-stamps",
         "Additional Postage Forever Stamps",
@@ -2362,20 +2459,22 @@ pub fn run_generate() -> Result<()> {
                     | Some("Additional Postage")
             )
         },
+        CategorySort::GroupByRateType,
         &stamps,
         &output_dir,
     )?;
 
-    // Non-machinable forever stamps
+    // Non-machinable forever stamps (default sort: year desc)
     generate_category_page(
         "non-machinable-forever-stamps",
         "Non-Machinable Forever Stamps",
         |s| s.rate_type.as_deref() == Some("Nonmachineable Surcharge"),
+        CategorySort::Default,
         &stamps,
         &output_dir,
     )?;
 
-    // Global forever stamps
+    // Global forever stamps (default sort: year desc)
     generate_category_page(
         "global-forever-stamps",
         "Global Forever Stamps",
@@ -2385,20 +2484,22 @@ pub fn run_generate() -> Result<()> {
                 Some("International") | Some("Global Forever")
             )
         },
+        CategorySort::Default,
         &stamps,
         &output_dir,
     )?;
 
-    // Postcard forever stamps
+    // Postcard forever stamps (forever first, then year desc)
     generate_category_page(
         "postcard-forever-stamps",
         "Postcard Forever Stamps",
         |s| s.rate_type.as_deref() == Some("Postcard"),
+        CategorySort::ForeverThenYear,
         &stamps,
         &output_dir,
     )?;
 
-    // Denominated postage stamps
+    // Denominated postage stamps (sort by rate desc)
     generate_category_page(
         "denominated-postage-stamps",
         "Denominated Postage Stamps",
@@ -2411,24 +2512,27 @@ pub fn run_generate() -> Result<()> {
                     | Some("Special")
             ) || extract_denomination(&s.name).is_some()
         },
+        CategorySort::RateDescending,
         &stamps,
         &output_dir,
     )?;
 
-    // Cards
+    // Cards (default sort: year desc)
     generate_category_page(
         "cards",
         "Stamped Cards",
         |s| s.stamp_type == "card",
+        CategorySort::Default,
         &stamps,
         &output_dir,
     )?;
 
-    // Envelopes
+    // Envelopes (default sort: year desc)
     generate_category_page(
         "envelopes",
         "Stamped Envelopes",
         |s| s.stamp_type == "envelope",
+        CategorySort::Default,
         &stamps,
         &output_dir,
     )?;

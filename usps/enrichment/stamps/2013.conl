@@ -5,8 +5,11 @@ grand-central-terminal
   rate = 19.95
   rate_type = Definitive
 
+arlington-green-bridge
+  rate = 5.60
+
 patriotic-star
-  rate = 0.44
+  rate = 0.46
   rate_type = Definitive
 
 yes-i-do-2
@@ -17,6 +20,40 @@ apples-2
   rate = 0.33
   forever = false
 
-aloha-shirts
-  rate = 0.32
+inverted-jenny
+  rate = 2.00
   forever = false
+  rate_type = Definitive
+
+tufted-puffins
+  rate = 0.86
+  forever = false
+
+kwanzaa-6
+  rate_type = Forever
+
+hanukkah-4
+  rate_type = Forever
+
+eid-2
+  rate_type = Forever
+
+made-in-america-building-a-nation-1
+  rate_type = Forever
+
+new-england-lighthouses
+  rate_type = Forever
+
+vintage-seed-packets-1
+  rate_type = Forever
+
+spicebush-swallowtail-butterfly
+  rate = 0.66
+  rate_type = Two Ounce
+  forever = false
+
+year-of-the-snake-2013
+  rate_type = Forever
+
+kaleidoscope-flowers
+  rate = 0.46
