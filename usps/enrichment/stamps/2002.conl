@@ -1,0 +1,10 @@
+; Overrides for 2002
+; Format: api-slug followed by indented field = value
+
+capitol-dome
+  rate = 13.65
+  rate_type = Definitive
+
+heroes-of-2001
+  rate = 0.37
+  rate_type = Semipostal

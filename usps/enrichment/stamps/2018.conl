@@ -1,0 +1,24 @@
+; Overrides for 2018
+; Format: api-slug followed by indented field = value
+
+meyer-lemons
+  rate_type = Definitive
+  rate = 0.02
+
+5-statue-of-freedom
+  rate_type = Definitive
+  rate = 5.00
+
+2-statue-of-freedom
+  rate_type = Definitive
+  rate = 2.00
+
+1-statue-of-freedom
+  rate_type = Definitive
+  rate = 1.00
+
+byodo-in-temple
+  rate = 6.70
+
+sleeping-bear-dunes
+  rate = 24.70

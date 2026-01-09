@@ -1,0 +1,24 @@
+; Overrides for 2017
+; Format: api-slug followed by indented field = value
+
+alzheimers-semipostal
+  rate_type = Semipostal
+  forever = true
+  extra_cost = 0.12
+  issued = 2017-11-30
+
+strawberries
+  rate_type = Definitive
+  rate = 0.03
+
+barn-swallow-envelopes
+  rate_type = Forever
+  type = envelope
+
+disney-villains-from-the-walt-disney-studios-ink-paint-department
+  slug = disney-villains
+
+azulillo-stamped-card
+  forever = true
+  type = card
+  rate_type = Forever

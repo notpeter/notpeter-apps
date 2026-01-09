@@ -1,0 +1,5 @@
+; Overrides for 2021
+; Format: api-slug followed by indented field = value
+
+castillo-de-san-marcos
+  rate = 7.95

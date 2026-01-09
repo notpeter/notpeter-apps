@@ -56,17 +56,112 @@ pub struct Product {
     pub postal_store_url: Option<String>,
     pub stamps_forever_url: Option<String>,
     pub images: Vec<String>,
+    pub metadata: Option<ProductMetadata>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ProductMetadata {
+    pub format: String,
+    pub quantity: Option<u32>,
+    pub size: Option<String>,
+    pub style: Option<String>,
+    pub closure: Option<String>,
+    pub sided: Option<u32>,
+}
+
+impl Product {
+    /// Generate a formatted display title based on product format
+    pub fn display_title(&self, stamp_name: &str) -> String {
+        if let Some(ref meta) = self.metadata {
+            match meta.format.as_str() {
+                "envelope" => {
+                    let windowed = match meta.style.as_deref() {
+                        Some("window") | Some("window-security") => "Windowed ",
+                        _ => "",
+                    };
+                    let closure = match meta.closure.as_deref() {
+                        Some("peel-and-stick") => "Peel-and-seal",
+                        Some("gummed") => "Glue-sealed",
+                        _ => return self.long_title.as_ref().unwrap_or(&self.title).clone(),
+                    };
+                    // Format size: "#6-3/4" -> "#6 3/4"
+                    let size = meta.size.as_ref()
+                        .map(|s| s.replacen("-", " ", 1))
+                        .unwrap_or_default();
+                    let qty = meta.quantity.unwrap_or(5);
+                    return format!("{} Stamped {}Envelope ({} pack, {}, {})",
+                        stamp_name, windowed, qty, closure, size);
+                }
+                "booklet" => {
+                    let qty = meta.quantity.unwrap_or(20);
+                    let sided = match meta.sided {
+                        Some(2) => ", 2-sided",
+                        Some(1) => ", 1-sided",
+                        _ => "",
+                    };
+                    return format!("{} Booklet of {}{}", stamp_name, qty, sided);
+                }
+                "pane" => {
+                    let qty = meta.quantity.unwrap_or(20);
+                    return format!("{} Pane of {}", stamp_name, qty);
+                }
+                "coil" => {
+                    let qty = meta.quantity.unwrap_or(100);
+                    let formatted_qty = if qty >= 1000 {
+                        format!("{},{}", qty / 1000, format!("{:03}", qty % 1000).trim_start_matches('0'))
+                    } else {
+                        qty.to_string()
+                    };
+                    return format!("{} Coil of {}", stamp_name, formatted_qty);
+                }
+                "stamped-card" | "double-reply-card" => {
+                    let qty = meta.quantity.unwrap_or(10);
+                    let card_type = if meta.format == "double-reply-card" { "Double Reply Card" } else { "Stamped Card" };
+                    return format!("{} {} ({} pack)", stamp_name, card_type, qty);
+                }
+                _ => {}
+            }
+        }
+        self.long_title.as_ref().unwrap_or(&self.title).clone()
+    }
+
+    /// Sort key for envelope products: (style_order, closure_order, size_order)
+    pub fn sort_key(&self) -> (u8, u8, u8) {
+        if let Some(ref meta) = self.metadata {
+            if meta.format == "envelope" {
+                let style_order = match meta.style.as_deref() {
+                    Some("regular") => 0,
+                    Some("regular-security") => 1,
+                    Some("window") => 2,
+                    Some("window-security") => 3,
+                    _ => 4,
+                };
+                let closure_order = match meta.closure.as_deref() {
+                    Some("peel-and-stick") => 0,
+                    Some("gummed") => 1,
+                    _ => 2,
+                };
+                let size_order = match meta.size.as_deref() {
+                    Some("#6-3/4") => 0,
+                    Some("#9") => 1,
+                    Some("#10") => 2,
+                    _ => 3,
+                };
+                return (style_order, closure_order, size_order);
+            }
+        }
+        (255, 255, 255) // Non-envelopes sort last
+    }
 }
 
 /// Year page category for custom grouping on year pages
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum YearPageCategory {
-    Forever,           // Forever Stamps
-    OtherForever,      // Additional Postage + Global + Postcard Forever Stamps
-    FlatRate,          // Priority Mail + Priority Mail Express
-    Denominated,       // Denominated Stamps (sorted by value)
-    Other,             // Stamped envelopes, cards, postcards
-    Ducks,             // Catch-all for remaining stamps
+    Forever,      // Forever Stamps
+    OtherForever, // Additional Postage + Global + Postcard Forever Stamps
+    Denominated,  // Denominated Stamps + Priority Mail (sorted by value)
+    Other,        // Stamped envelopes, cards, postcards
+    Unknown,      // Catch-all for remaining stamps
 }
 
 impl YearPageCategory {
@@ -80,22 +175,27 @@ impl YearPageCategory {
 
         match rate_type {
             "Forever" | "Semipostal" => YearPageCategory::Forever,
-            "Postcard" | "International" | "Global Forever" |
-            "Additional Ounce" | "Two Ounce" | "Three Ounce" |
-            "Nonmachineable Surcharge" | "Additional Postage" => YearPageCategory::OtherForever,
-            "Priority Mail" | "Priority Mail Express" => YearPageCategory::FlatRate,
+            "Postcard"
+            | "International"
+            | "Global Forever"
+            | "Additional Ounce"
+            | "Two Ounce"
+            | "Three Ounce"
+            | "Nonmachineable Surcharge"
+            | "Additional Postage" => YearPageCategory::OtherForever,
+            "Priority Mail" | "Priority Mail Express" => YearPageCategory::Denominated,
             "Definitive" | "Other Denomination" | "First Class" | "Special" => {
                 if extract_denomination(&stamp.name).is_some() || stamp.rate.is_some() {
                     YearPageCategory::Denominated
                 } else {
-                    YearPageCategory::Ducks
+                    YearPageCategory::Unknown
                 }
             }
             _ => {
                 if extract_denomination(&stamp.name).is_some() {
                     YearPageCategory::Denominated
                 } else {
-                    YearPageCategory::Ducks
+                    YearPageCategory::Unknown
                 }
             }
         }
@@ -105,10 +205,9 @@ impl YearPageCategory {
         match self {
             YearPageCategory::Forever => "Forever Stamps",
             YearPageCategory::OtherForever => "Other Forever Stamps",
-            YearPageCategory::FlatRate => "Flat Rate Envelope",
             YearPageCategory::Denominated => "Denominated Stamps",
             YearPageCategory::Other => "Other",
-            YearPageCategory::Ducks => "Ducks",
+            YearPageCategory::Unknown => "Unknown",
         }
     }
 
@@ -116,10 +215,9 @@ impl YearPageCategory {
         match self {
             YearPageCategory::Forever => 0,
             YearPageCategory::OtherForever => 1,
-            YearPageCategory::FlatRate => 2,
-            YearPageCategory::Denominated => 3,
-            YearPageCategory::Other => 4,
-            YearPageCategory::Ducks => 5,
+            YearPageCategory::Denominated => 2,
+            YearPageCategory::Other => 3,
+            YearPageCategory::Unknown => 4,
         }
     }
 }
@@ -286,8 +384,12 @@ fn parse_conl(content: &str) -> Result<BTreeMap<String, ConlValue>> {
                             }
                             let obj_trimmed = obj_line.trim();
                             if let Some((k, v)) = obj_trimmed.split_once(" = ") {
-                                obj.insert(k.trim().to_string(), ConlValue::String(v.trim().to_string()));
-                            } else if !obj_trimmed.contains(" = ") && !obj_trimmed.starts_with("=") {
+                                obj.insert(
+                                    k.trim().to_string(),
+                                    ConlValue::String(v.trim().to_string()),
+                                );
+                            } else if !obj_trimmed.contains(" = ") && !obj_trimmed.starts_with("=")
+                            {
                                 // Nested array within object
                                 let nested_key = obj_trimmed;
                                 let mut nested_arr = Vec::new();
@@ -345,7 +447,10 @@ fn parse_conl(content: &str) -> Result<BTreeMap<String, ConlValue>> {
                         continue;
                     }
                     if let Some((k, v)) = obj_trimmed.split_once(" = ") {
-                        obj.insert(k.trim().to_string(), ConlValue::String(v.trim().to_string()));
+                        obj.insert(
+                            k.trim().to_string(),
+                            ConlValue::String(v.trim().to_string()),
+                        );
                     } else if !obj_trimmed.contains(" = ") {
                         // Nested array (like sources)
                         let nested_key = obj_trimmed;
@@ -425,43 +530,140 @@ fn load_stamp(conl_path: &Path) -> Result<Stamp> {
         .with_context(|| format!("Failed to read {}", conl_path.display()))?;
     let data = parse_conl(&content)?;
 
-    let name = data.get("name").and_then(|v| v.as_str()).unwrap_or("Unknown").to_string();
-    let slug = data.get("slug").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
-    let api_slug = data.get("api_slug").and_then(|v| v.as_str()).unwrap_or(&slug).to_string();
-    let url = data.get("url").and_then(|v| v.as_str()).unwrap_or("").to_string();
-    let year = data.get("year").and_then(|v| v.as_str()).and_then(|s| s.parse().ok()).unwrap_or(0);
-    let issue_date = data.get("issue_date").and_then(|v| v.as_str()).map(String::from);
-    let rate = data.get("rate").and_then(|v| v.as_str()).and_then(|s| s.parse().ok());
-    let rate_type = data.get("rate_type").and_then(|v| v.as_str()).map(String::from);
-    let stamp_type = data.get("type").and_then(|v| v.as_str()).unwrap_or("stamp").to_string();
-    let series = data.get("series").and_then(|v| v.as_str()).map(String::from);
-    let stamp_images = data.get("stamp_images").and_then(|v| v.as_array()).cloned().unwrap_or_default();
-    let sheet_image = data.get("sheet_image").and_then(|v| v.as_str()).map(String::from);
+    let name = data
+        .get("name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("Unknown")
+        .to_string();
+    let slug = data
+        .get("slug")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let api_slug = data
+        .get("api_slug")
+        .and_then(|v| v.as_str())
+        .unwrap_or(&slug)
+        .to_string();
+    let url = data
+        .get("url")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    let year = data
+        .get("year")
+        .and_then(|v| v.as_str())
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(0);
+    let issue_date = data
+        .get("issue_date")
+        .and_then(|v| v.as_str())
+        .map(String::from);
+    let rate = data
+        .get("rate")
+        .and_then(|v| v.as_str())
+        .and_then(|s| s.parse().ok());
+    let rate_type = data
+        .get("rate_type")
+        .and_then(|v| v.as_str())
+        .map(String::from);
+    let stamp_type = data
+        .get("type")
+        .and_then(|v| v.as_str())
+        .unwrap_or("stamp")
+        .to_string();
+    let series = data
+        .get("series")
+        .and_then(|v| v.as_str())
+        .map(String::from);
+    let stamp_images = data
+        .get("stamp_images")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+    let sheet_image = data
+        .get("sheet_image")
+        .and_then(|v| v.as_str())
+        .map(String::from);
     let about = data.get("about").and_then(|v| v.as_str()).map(String::from);
-    let background_color = data.get("background_color").and_then(|v| v.as_str()).map(String::from);
+    let background_color = data
+        .get("background_color")
+        .and_then(|v| v.as_str())
+        .map(String::from);
 
     // Parse credits
     let mut credits = Credits::default();
     if let Some(credits_obj) = data.get("credits").and_then(|v| v.as_object()) {
-        credits.art_director = credits_obj.get("art_director").and_then(|v| v.as_str()).map(String::from);
-        credits.artist = credits_obj.get("artist").and_then(|v| v.as_str()).map(String::from);
-        credits.designer = credits_obj.get("designer").and_then(|v| v.as_str()).map(String::from);
-        credits.typographer = credits_obj.get("typographer").and_then(|v| v.as_str()).map(String::from);
-        credits.photographer = credits_obj.get("photographer").and_then(|v| v.as_str()).map(String::from);
-        credits.illustrator = credits_obj.get("illustrator").and_then(|v| v.as_str()).map(String::from);
-        credits.sources = credits_obj.get("sources").and_then(|v| v.as_array()).cloned().unwrap_or_default();
+        credits.art_director = credits_obj
+            .get("art_director")
+            .and_then(|v| v.as_str())
+            .map(String::from);
+        credits.artist = credits_obj
+            .get("artist")
+            .and_then(|v| v.as_str())
+            .map(String::from);
+        credits.designer = credits_obj
+            .get("designer")
+            .and_then(|v| v.as_str())
+            .map(String::from);
+        credits.typographer = credits_obj
+            .get("typographer")
+            .and_then(|v| v.as_str())
+            .map(String::from);
+        credits.photographer = credits_obj
+            .get("photographer")
+            .and_then(|v| v.as_str())
+            .map(String::from);
+        credits.illustrator = credits_obj
+            .get("illustrator")
+            .and_then(|v| v.as_str())
+            .map(String::from);
+        credits.sources = credits_obj
+            .get("sources")
+            .and_then(|v| v.as_array())
+            .cloned()
+            .unwrap_or_default();
     }
 
     // Parse products
     let mut products = Vec::new();
     if let Some(products_arr) = data.get("products").and_then(|v| v.as_object_array()) {
         for prod in products_arr {
-            let title = prod.get("title").and_then(|v| v.as_str()).unwrap_or("").to_string();
-            let long_title = prod.get("long_title").and_then(|v| v.as_str()).map(String::from);
+            let title = prod
+                .get("title")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let long_title = prod
+                .get("long_title")
+                .and_then(|v| v.as_str())
+                .map(String::from);
             let price = prod.get("price").and_then(|v| v.as_str()).map(String::from);
-            let postal_store_url = prod.get("postal_store_url").and_then(|v| v.as_str()).map(String::from);
-            let stamps_forever_url = prod.get("stamps_forever_url").and_then(|v| v.as_str()).map(String::from);
-            let images = prod.get("images").and_then(|v| v.as_array()).cloned().unwrap_or_default();
+            let postal_store_url = prod
+                .get("postal_store_url")
+                .and_then(|v| v.as_str())
+                .map(String::from);
+            let stamps_forever_url = prod
+                .get("stamps_forever_url")
+                .and_then(|v| v.as_str())
+                .map(String::from);
+            let images = prod
+                .get("images")
+                .and_then(|v| v.as_array())
+                .cloned()
+                .unwrap_or_default();
+
+            // Parse product metadata
+            let metadata = prod.get("metadata").and_then(|v| v.as_object()).map(|meta| {
+                ProductMetadata {
+                    format: meta.get("format").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                    quantity: meta.get("quantity").and_then(|v| v.as_str()).and_then(|s| s.parse().ok()),
+                    size: meta.get("size").and_then(|v| v.as_str()).map(String::from),
+                    style: meta.get("style").and_then(|v| v.as_str()).map(String::from),
+                    closure: meta.get("closure").and_then(|v| v.as_str()).map(String::from),
+                    sided: meta.get("sided").and_then(|v| v.as_str()).and_then(|s| s.parse().ok()),
+                }
+            });
 
             products.push(Product {
                 title,
@@ -470,9 +672,13 @@ fn load_stamp(conl_path: &Path) -> Result<Stamp> {
                 postal_store_url,
                 stamps_forever_url,
                 images,
+                metadata,
             });
         }
     }
+
+    // Sort products (envelopes by style, closure, size)
+    products.sort_by_key(|p| p.sort_key());
 
     Ok(Stamp {
         name,
@@ -554,7 +760,8 @@ fn load_all_stamps() -> Result<Vec<Stamp>> {
 
     // Sort by year (desc), then issue_date (desc), then name
     stamps.sort_by(|a, b| {
-        b.year.cmp(&a.year)
+        b.year
+            .cmp(&a.year)
             .then_with(|| b.issue_date.cmp(&a.issue_date))
             .then_with(|| a.name.cmp(&b.name))
     });
@@ -775,6 +982,11 @@ h3 {
     color: var(--text-muted);
 }
 
+.stamp-card-badge {
+    padding: 0 16px 16px;
+    text-align: right;
+}
+
 .stamp-card-rate {
     display: inline-block;
     background: var(--primary);
@@ -788,6 +1000,22 @@ h3 {
 
 .stamp-card-rate.available {
     background: #38a169;
+}
+
+.stamp-card-type {
+    display: inline-block;
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.stamp-card-type:hover {
+    background: var(--primary);
+    color: white;
 }
 
 /* Stamp detail page */
@@ -1012,6 +1240,41 @@ h3 {
     background: var(--primary-light);
 }
 
+/* Products list view (for >6 products) */
+.products-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.products-list .product-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.products-list .product-card-image {
+    width: 150px;
+    min-width: 150px;
+    aspect-ratio: 16/9;
+}
+
+.products-list .product-card-content {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.products-list .product-card-title {
+    margin-bottom: 0;
+}
+
+.products-list .product-card-price {
+    margin-bottom: 0;
+}
+
 /* Year navigation */
 .year-nav {
     display: grid;
@@ -1184,7 +1447,11 @@ fn page_header(title: &str, current_path: &str) -> String {
     let nav_html: String = nav_items
         .iter()
         .map(|(path, label)| {
-            let active = if *path == current_path { " class=\"active\"" } else { "" };
+            let active = if *path == current_path {
+                " class=\"active\""
+            } else {
+                ""
+            };
             format!("<a href=\"{}\"{}>{}  </a>", path, active, label)
         })
         .collect();
@@ -1254,26 +1521,70 @@ fn page_footer() -> &'static str {
 "#
 }
 
+/// Map rate_type to category URL and display label for non-denominated stamps
+fn rate_type_to_category(rate_type: Option<&str>) -> Option<(&'static str, &'static str)> {
+    match rate_type {
+        Some("Forever") | Some("Semipostal") => Some(("forever-stamps", "Forever")),
+        Some("Additional Ounce") | Some("Two Ounce") | Some("Three Ounce") | Some("Additional Postage") => {
+            Some(("additional-postage-forever-stamps", "Additional Postage"))
+        }
+        Some("Nonmachineable Surcharge") => Some(("non-machinable-forever-stamps", "Non-Machinable")),
+        Some("International") | Some("Global Forever") => Some(("global-forever-stamps", "Global")),
+        Some("Postcard") => Some(("postcard-forever-stamps", "Postcard")),
+        _ => None,
+    }
+}
+
 /// Generate a stamp card HTML
 fn stamp_card_html(stamp: &Stamp, image_base: &str) -> String {
     let image_html = if let Some(img) = stamp.stamp_images.first() {
         format!(
             r#"<img src="{}/{}/{}/{}" alt="{}">"#,
-            image_base, stamp.year, stamp.slug, img, html_escape(&stamp.name)
+            image_base,
+            stamp.year,
+            stamp.slug,
+            img,
+            html_escape(&stamp.name)
         )
     } else if let Some(img) = &stamp.sheet_image {
         format!(
             r#"<img src="{}/{}/{}/{}" alt="{}">"#,
-            image_base, stamp.year, stamp.slug, img, html_escape(&stamp.name)
+            image_base,
+            stamp.year,
+            stamp.slug,
+            img,
+            html_escape(&stamp.name)
         )
     } else {
         "<span>No image</span>".to_string()
     };
 
+    // Rate badge for denominated stamps (shown in content area, lower left)
     let rate_html = if let Some(rate) = stamp.rate {
         let rate_str = format_rate(rate);
-        let available_class = if !stamp.products.is_empty() { " available" } else { "" };
-        format!(r#"<span class="stamp-card-rate{}">{}</span>"#, available_class, rate_str)
+        let available_class = if !stamp.products.is_empty() {
+            " available"
+        } else {
+            ""
+        };
+        format!(
+            r#"<span class="stamp-card-rate{}">{}</span>"#,
+            available_class, rate_str
+        )
+    } else {
+        String::new()
+    };
+
+    // Type link for non-denominated stamps (shown outside link, lower right)
+    let type_html = if stamp.rate.is_none() {
+        if let Some((category_url, label)) = rate_type_to_category(stamp.rate_type.as_deref()) {
+            format!(
+                r#"<div class="stamp-card-badge"><a href="/{}/" class="stamp-card-type">{}</a></div>"#,
+                category_url, label
+            )
+        } else {
+            String::new()
+        }
     } else {
         String::new()
     };
@@ -1288,12 +1599,14 @@ fn stamp_card_html(stamp: &Stamp, image_base: &str) -> String {
             {}
         </div>
     </a>
+    {}
 </div>"#,
         stamp.slug,
         image_html,
         html_escape(&stamp.name),
         stamp.year,
-        rate_html
+        rate_html,
+        type_html
     )
 }
 
@@ -1312,7 +1625,9 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
     <span>{}</span>
 </nav>
 "#,
-        stamp.year, stamp.year, html_escape(&stamp.name)
+        stamp.year,
+        stamp.year,
+        html_escape(&stamp.name)
     ));
 
     // Main content
@@ -1324,14 +1639,20 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
     // Main image
     let main_image = stamp.stamp_images.first().or(stamp.sheet_image.as_ref());
     if let Some(img) = main_image {
-        let bg_style = stamp.background_color.as_ref()
+        let bg_style = stamp
+            .background_color
+            .as_ref()
             .map(|c| format!(r#" style="background-color: #{}""#, c))
             .unwrap_or_default();
         html.push_str(&format!(
             r#"<div class="stamp-main-image"{}>
     <img src="/images/{}/{}/{}" alt="{}">
 </div>"#,
-            bg_style, stamp.year, stamp.slug, img, html_escape(&stamp.name)
+            bg_style,
+            stamp.year,
+            stamp.slug,
+            img,
+            html_escape(&stamp.name)
         ));
     }
 
@@ -1349,7 +1670,9 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
 
     // Sheet image in separate container
     if let Some(sheet) = &stamp.sheet_image {
-        let bg_style = stamp.background_color.as_ref()
+        let bg_style = stamp
+            .background_color
+            .as_ref()
             .map(|c| format!(r#" style="background-color: #{}""#, c))
             .unwrap_or_default();
         html.push_str(&format!(
@@ -1366,6 +1689,11 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
 
     // Meta grid
     html.push_str(r#"<div class="stamp-meta-grid">"#);
+
+    html.push_str(&format!(
+        r#"<span class="stamp-meta-label">API Slug</span><span>{}</span>"#,
+        html_escape(&stamp.api_slug)
+    ));
 
     html.push_str(&format!(
         r#"<span class="stamp-meta-label">Year</span><span><a href="/{}/">{}</a></span>"#,
@@ -1458,7 +1786,13 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
     if !stamp.products.is_empty() {
         html.push_str(r#"<section class="products-section">"#);
         html.push_str("<h2>Available Products</h2>");
-        html.push_str(r#"<div class="products-grid">"#);
+        // Use list layout for more than 6 products
+        let products_class = if stamp.products.len() > 6 {
+            "products-list"
+        } else {
+            "products-grid"
+        };
+        html.push_str(&format!(r#"<div class="{}">"#, products_class));
 
         for product in &stamp.products {
             html.push_str(r#"<div class="product-card">"#);
@@ -1472,11 +1806,11 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
 
             html.push_str(r#"<div class="product-card-content">"#);
 
-            // Use long_title if available, otherwise use title
-            let display_title = product.long_title.as_ref().unwrap_or(&product.title);
+            // Use formatted display title for envelopes, otherwise long_title or title
+            let display_title = product.display_title(&stamp.name);
             html.push_str(&format!(
                 r#"<div class="product-card-title">{}</div>"#,
-                html_escape(display_title)
+                html_escape(&display_title)
             ));
 
             if let Some(price) = &product.price {
@@ -1490,12 +1824,6 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
             if let Some(url) = &product.postal_store_url {
                 html.push_str(&format!(
                     r#"<a href="{}" target="_blank" rel="noopener" class="product-card-link">Buy at USPS</a> "#,
-                    url
-                ));
-            }
-            if let Some(url) = &product.stamps_forever_url {
-                html.push_str(&format!(
-                    r#"<a href="{}" target="_blank" rel="noopener" class="product-card-link" style="background: var(--accent);">StampsForever</a>"#,
                     url
                 ));
             }
@@ -1515,7 +1843,12 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
 }
 
 /// Generate year index page
-fn generate_year_page(year: u32, stamps: &[&Stamp], all_years: &[u32], output_dir: &Path) -> Result<()> {
+fn generate_year_page(
+    year: u32,
+    stamps: &[&Stamp],
+    all_years: &[u32],
+    output_dir: &Path,
+) -> Result<()> {
     let page_dir = output_dir.join(year.to_string());
     fs::create_dir_all(&page_dir)?;
 
@@ -1540,7 +1873,10 @@ fn generate_year_page(year: u32, stamps: &[&Stamp], all_years: &[u32], output_di
     html.push_str("</div>");
 
     html.push_str(&format!("<h2>{} Stamps</h2>", year));
-    html.push_str(&format!("<p style=\"margin-bottom: 24px; color: var(--text-muted);\">{} stamps issued</p>", stamps.len()));
+    html.push_str(&format!(
+        "<p style=\"margin-bottom: 24px; color: var(--text-muted);\">{} stamps issued</p>",
+        stamps.len()
+    ));
 
     // Group by year page category with custom ordering
     let mut by_category: HashMap<YearPageCategory, Vec<&Stamp>> = HashMap::new();
@@ -1572,6 +1908,14 @@ fn generate_year_page(year: u32, stamps: &[&Stamp], all_years: &[u32], output_di
         }
     }
 
+    // Repeat year navigation at bottom
+    html.push_str(r#"<div class="year-nav" style="margin-top: 48px;">"#);
+    for y in all_years {
+        let active = if *y == year { " class=\"active\"" } else { "" };
+        html.push_str(&format!(r#"<a href="/{}/"{}>{}</a>"#, y, active, y));
+    }
+    html.push_str("</div>");
+
     html.push_str(page_footer());
 
     let page_path = page_dir.join("index.html");
@@ -1595,9 +1939,8 @@ fn generate_category_page(
     let total_count = filtered.len();
 
     // Split into available (has products) and discontinued
-    let (available, discontinued): (Vec<&Stamp>, Vec<&Stamp>) = filtered
-        .into_iter()
-        .partition(|s| !s.products.is_empty());
+    let (available, discontinued): (Vec<&Stamp>, Vec<&Stamp>) =
+        filtered.into_iter().partition(|s| !s.products.is_empty());
 
     let mut html = page_header(title, &format!("/{}/", category));
 
@@ -1669,7 +2012,9 @@ fn get_roles_for_person(name: &str, stamp: &Stamp) -> Vec<&'static str> {
     if stamp.credits.artist.as_deref() == Some(name) {
         roles.push("Artist");
     }
-    if stamp.credits.designer.as_deref() == Some(name) && stamp.credits.artist.as_deref() != Some(name) {
+    if stamp.credits.designer.as_deref() == Some(name)
+        && stamp.credits.artist.as_deref() != Some(name)
+    {
         roles.push("Designer");
     }
     if stamp.credits.photographer.as_deref() == Some(name) {
@@ -1693,29 +2038,40 @@ fn stamp_card_with_roles_html(stamp: &Stamp, roles: &[&str], image_base: &str) -
     let image_html = if let Some(img) = stamp.stamp_images.first() {
         format!(
             r#"<img src="{}/{}/{}/{}" alt="{}">"#,
-            image_base, stamp.year, stamp.slug, img, html_escape(&stamp.name)
+            image_base,
+            stamp.year,
+            stamp.slug,
+            img,
+            html_escape(&stamp.name)
         )
     } else if let Some(img) = &stamp.sheet_image {
         format!(
             r#"<img src="{}/{}/{}/{}" alt="{}">"#,
-            image_base, stamp.year, stamp.slug, img, html_escape(&stamp.name)
+            image_base,
+            stamp.year,
+            stamp.slug,
+            img,
+            html_escape(&stamp.name)
         )
     } else {
         "<span>No image</span>".to_string()
     };
 
-    let roles_html: String = roles.iter().map(|role| {
-        let class = match *role {
-            "Art Director" => "art-director",
-            "Artist" => "artist",
-            "Designer" => "designer",
-            "Photographer" => "photographer",
-            "Illustrator" => "illustrator",
-            "Typographer" => "typographer",
-            _ => "source",
-        };
-        format!(r#"<span class="role-badge {}">{}</span>"#, class, role)
-    }).collect();
+    let roles_html: String = roles
+        .iter()
+        .map(|role| {
+            let class = match *role {
+                "Art Director" => "art-director",
+                "Artist" => "artist",
+                "Designer" => "designer",
+                "Photographer" => "photographer",
+                "Illustrator" => "illustrator",
+                "Typographer" => "typographer",
+                _ => "source",
+            };
+            format!(r#"<span class="role-badge {}">{}</span>"#, class, role)
+        })
+        .collect();
 
     format!(
         r#"<div class="stamp-card">
@@ -1778,11 +2134,13 @@ fn generate_people_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
 
     let mut html = page_header("Credits", "/credits/");
 
-    html.push_str(r#"<nav class="breadcrumb">
+    html.push_str(
+        r#"<nav class="breadcrumb">
     <a href="/">Home</a> <span>/</span>
     <span>Credits</span>
 </nav>
-"#);
+"#,
+    );
 
     html.push_str("<h2>Artists, Designers & Photographers</h2>");
     html.push_str(&format!(
@@ -1800,7 +2158,9 @@ fn generate_people_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
     <div class="person-name">{}</div>
     <div class="person-count">{} stamps</div>
 </a>"#,
-            slug, html_escape(name), unique_stamps.len()
+            slug,
+            html_escape(name),
+            unique_stamps.len()
         ));
     }
     html.push_str("</div>");
@@ -1872,7 +2232,10 @@ fn generate_homepage(stamps: &[Stamp], years: &[u32], output_dir: &Path) -> Resu
 
     // Show recent stamps (last 2 years)
     let current_year = years.first().copied().unwrap_or(2026);
-    let recent: Vec<_> = stamps.iter().filter(|s| s.year >= current_year - 1).collect();
+    let recent: Vec<_> = stamps
+        .iter()
+        .filter(|s| s.year >= current_year - 1)
+        .collect();
 
     html.push_str("<h3>Recent Stamps</h3>");
     html.push_str(r#"<div class="stamp-grid">"#);
@@ -1953,7 +2316,12 @@ pub fn run_generate() -> Result<()> {
     fs::create_dir_all(&output_dir)?;
 
     // Collect years
-    let mut years: Vec<u32> = stamps.iter().map(|s| s.year).collect::<HashSet<_>>().into_iter().collect();
+    let mut years: Vec<u32> = stamps
+        .iter()
+        .map(|s| s.year)
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect();
     years.sort_by(|a, b| b.cmp(a)); // Descending
 
     println!("Generating stamp pages...");
@@ -1973,10 +2341,10 @@ pub fn run_generate() -> Result<()> {
     generate_category_page(
         "forever-stamps",
         "Forever Stamps",
-        |s| matches!(
-            s.rate_type.as_deref(),
-            Some("Forever") | Some("Semipostal")
-        ) && s.stamp_type == "stamp",
+        |s| {
+            matches!(s.rate_type.as_deref(), Some("Forever") | Some("Semipostal"))
+                && s.stamp_type == "stamp"
+        },
         &stamps,
         &output_dir,
     )?;
@@ -1985,10 +2353,15 @@ pub fn run_generate() -> Result<()> {
     generate_category_page(
         "additional-postage-forever-stamps",
         "Additional Postage Forever Stamps",
-        |s| matches!(
-            s.rate_type.as_deref(),
-            Some("Additional Ounce") | Some("Two Ounce") | Some("Three Ounce") | Some("Additional Postage")
-        ),
+        |s| {
+            matches!(
+                s.rate_type.as_deref(),
+                Some("Additional Ounce")
+                    | Some("Two Ounce")
+                    | Some("Three Ounce")
+                    | Some("Additional Postage")
+            )
+        },
         &stamps,
         &output_dir,
     )?;
@@ -2006,10 +2379,12 @@ pub fn run_generate() -> Result<()> {
     generate_category_page(
         "global-forever-stamps",
         "Global Forever Stamps",
-        |s| matches!(
-            s.rate_type.as_deref(),
-            Some("International") | Some("Global Forever")
-        ),
+        |s| {
+            matches!(
+                s.rate_type.as_deref(),
+                Some("International") | Some("Global Forever")
+            )
+        },
         &stamps,
         &output_dir,
     )?;
@@ -2030,7 +2405,10 @@ pub fn run_generate() -> Result<()> {
         |s| {
             matches!(
                 s.rate_type.as_deref(),
-                Some("Definitive") | Some("Other Denomination") | Some("First Class") | Some("Special")
+                Some("Definitive")
+                    | Some("Other Denomination")
+                    | Some("First Class")
+                    | Some("Special")
             ) || extract_denomination(&s.name).is_some()
         },
         &stamps,

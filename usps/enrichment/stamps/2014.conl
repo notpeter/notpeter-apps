@@ -1,0 +1,49 @@
+; Overrides for 2014
+; Format: api-slug followed by indented field = value
+
+breast-cancer-research
+  rate_type = Semipostal
+  forever = true
+  extra_cost = 0.12
+  issued = 2014-09-30
+
+silver-bells-wreath
+  rate_type = International
+
+song-birds
+  rate_type = Forever
+
+star-spangled-banner
+  rate_type = Forever
+
+cut-paper-heart-1
+  rate_type = Forever
+
+year-of-the-horse-2014
+  rate_type = Forever
+
+rudolph-the-red-nosed-reindeer
+  rate_type = Forever
+
+c-alfred-chief-anderson-1; two ounce
+  rate = 70
+  forever = false
+
+ralph-ellison; three ounce
+  rate = 91
+  forever = false
+
+abraham-lincoln-memorial-statue; second-ounce
+  rate = 21
+  forever = false
+  rate_type = Additional Ounce
+
+verrazano-narrows-bridge
+  rate = 5.60
+
+uss-arizona-memorial
+  rate = 19.99
+
+glade-creek-grist-mill
+  rate = 5.75
+  ;

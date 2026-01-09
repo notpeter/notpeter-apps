@@ -1,0 +1,6 @@
+; Overrides for 2006
+; Format: api-slug followed by indented field = value
+
+sugar-ray-robinson
+  rate = 0.39
+  rate_type = Definitive

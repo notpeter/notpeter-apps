@@ -1,0 +1,8 @@
+; Overrides for 2026
+; Format: api-slug followed by indented field = value
+
+sunflowers
+  rate_type = Forever
+
+harriet-powers
+  rate_type = Forever

@@ -1,0 +1,19 @@
+; Overrides for 2023
+; Format: api-slug followed by indented field = value
+
+
+florida-everglades
+  rate_type = Priority Mail
+  rate = 9.65
+
+great-smoky-mountains
+  rate_type = Priority Mail Express
+  rate = 28.75
+
+red-fox
+  rate_type = Definitive
+  rate = 0.40
+
+10-floral-geometry
+  rate_type = Definitive
+  rate = 10.00

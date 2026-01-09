@@ -1,0 +1,21 @@
+; Overrides for 2022
+; Format: api-slug followed by indented field = value
+
+
+blueberries
+  rate_type = Definitive
+  rate = 0.04
+
+2-floral-geometry
+  rate_type = Definitive
+  rate = 2.00
+
+5-floral-geometry
+  rate_type = Definitive
+  rate = 5.00
+
+palace-of-fine-arts
+  rate = 26.95
+
+monument-valley
+  rate = 8.95

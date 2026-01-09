@@ -1,0 +1,11 @@
+; Overrides for 1998
+; Format: api-slug followed by indented field = value
+
+alexander-calder
+  rate = 0.32
+  rate_type = Definitive
+
+h-series
+  rate = 0.33
+  rate_type = Definitive
+  slug = uncle-sams-hat-33c-1998

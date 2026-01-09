@@ -1,0 +1,21 @@
+; Overrides for 2024
+; Format: api-slug followed by indented field = value
+
+1c-fringed-tulip
+  rate_type = Definitive
+  rate = 0.01
+2c-daffodils
+  rate_type = Definitive
+  rate = 0.02
+3c-peonies
+  rate_type = Definitive
+  rate = 0.03
+5c-red-tulips
+  rate_type = Definitive
+  rate = 0.05
+10c-poppies-and-coneflowers
+  rate_type = Definitive
+  rate = 0.10
+1-floral-geometry
+  rate_type = Definitive
+  rate = 1.00

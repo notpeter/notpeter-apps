@@ -1,0 +1,13 @@
+; Overrides for 2001
+; Format: api-slug followed by indented field = value
+
+american-buffalo
+  rate = 0.21
+  rate_type = Definitive
+
+amish-quilts
+  rate = 0.34
+  rate_type = Definitive
+
+george-washington-4
+  rate = 0.20

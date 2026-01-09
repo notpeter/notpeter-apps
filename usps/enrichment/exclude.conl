@@ -1,0 +1,41 @@
+; api_slug = reason
+
+mountain = nonprofit
+wetlands = nonprofit
+diner = presorted
+green-bicycle = presorted
+patriotic-banner = presorted
+the-new-york-public-library = presorted ; 2000
+woody-wagon = presorted ; 2001
+art-deco-eagle-1 = nonprofit ; 2011
+
+; Federal Duck Stamps
+surf-scoters = duckstamp ; 1996
+canada-goose = duckstamp ; 1997
+barrows-goldeneye = duckstamp ; 1998
+greater-scaup = duckstamp ; 1999
+mottled-duck = duckstamp ; 2000
+northern-pintail = duckstamp ; 2001
+black-scoters = duckstamp ; 2002
+snow-geese-1 = duckstamp ; 2003
+redheads-1 = duckstamp ; 2004
+hooded-mergansers-1 = duckstamp ; 2005
+rosss-geese-1 = duckstamp ; 2006
+ring-necked-ducks-1 = duckstamp ; 2007
+northern-pintails = duckstamp ; 2008
+long-tailed-duck-and-decoy = duckstamp ; 2009
+american-wigeon = duckstamp ; 2010
+white-fronted-geese-1 = duckstamp ; 2011
+wood-duck-1 = duckstamp ; 2012
+common-goldeneye = duckstamp ; 2013
+canvasback = duckstamp ; 2014
+ruddy-ducks-2 = duckstamp ; 2015
+trumpeter-swans-1 = duckstamp ; 2016
+black-bellied-whistling-ducks = duckstamp ; 2020
+jr-duck-wood-duck = duckstamp ; 2020 junior
+migratory-bird = duckstamp ; 2021
+duck-stamp-redheads = duckstamp ; 2022
+junior-duck-stamp-hooded-merganser = duckstamp ; 2023 junior
+duck-stamp-tundra-swans = duckstamp ; 2023
+spectacled-eider-1 = duckstamp ; 2025
+jr-duck-green-winged-teal = duckstamp ; 2022 junior

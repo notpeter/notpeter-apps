@@ -1,0 +1,9 @@
+; Overrides for 2020
+; Format: api-slug followed by indented field = value
+
+
+big-bend
+  rate = 7.75
+
+grand-island-ice-caves
+  rate = 26.35

@@ -1,0 +1,14 @@
+; Overrides for 2015
+; Format: api-slug followed by indented field = value
+
+world-stamp-show-ny-2016-1
+  rate_type = Forever
+
+from-me-to-you-1
+  rate_type = Forever
+
+1-patriotic-wave
+  rate = 1.00
+
+2-patriotic-wave
+  rate = 2.00

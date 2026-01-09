@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS products (
     postal_store_url TEXT,
     stamps_forever_url TEXT,
     images TEXT,  -- JSON array
+    metadata TEXT,  -- JSON object with parsed product attributes
     PRIMARY KEY (stamp_slug, title)
 );
 

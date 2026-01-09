@@ -1,0 +1,22 @@
+; Overrides for 2008
+; Format: api-slug followed by indented field = value
+
+flags-247
+  rate = 0.42
+  rate_type = Definitive
+
+flags-of-our-nation-set-1
+  rate = 0.42
+  rate_type = Definitive
+
+latin-jazz
+  rate = 0.42
+  rate_type = Definitive
+
+take-me-out-to-the-ballgame
+  rate = 0.42
+  rate_type = Definitive
+
+vintage-black-cinema
+  rate = 0.41
+  rate_type = Definitive

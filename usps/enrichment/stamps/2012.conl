@@ -1,0 +1,6 @@
+; Overrides for 2012
+; Format: api-slug followed by indented field = value
+
+bobcat
+  rate = 0.01
+  rate_type = Definitive

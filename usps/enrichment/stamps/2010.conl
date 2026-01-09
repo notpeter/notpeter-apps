@@ -1,0 +1,10 @@
+; Overrides for 2010
+; Format: api-slug followed by indented field = value
+
+bill-mauldin
+  rate = 0.44
+  rate_type = Definitive
+
+scouting
+  rate = 0.44
+  rate_type = Definitive

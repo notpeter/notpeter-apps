@@ -1,0 +1,19 @@
+; Overrides for 2016
+; Format: api-slug followed by indented field = value
+la-cueva-del-indio
+  rate = 6.45
+
+columbia-river-george
+  rate = 22.95
+
+apples
+  rate_type = Definitive
+  rate = 0.01
+
+pears
+  rate_type = Definitive
+  rate = 0.10
+
+grapes
+  rate_type = Definitive
+  rate = 0.05

@@ -1,0 +1,18 @@
+; Overrides for 2007
+; Format: api-slug followed by indented field = value
+
+celebrate
+  rate = 0.41
+  rate_type = Definitive
+
+gerald-r-ford
+  rate = 0.41
+  rate_type = Definitive
+
+jury-duty
+  rate = 0.41
+  rate_type = Definitive
+
+patriotic-banner
+  rate = 0.10
+  rate_type = Definitive

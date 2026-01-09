@@ -1,0 +1,15 @@
+; Overrides for 2019
+; Format: api-slug followed by indented field = value
+
+healing-ptsd
+  rate_type = Semipostal
+  forever = true
+  extra_cost = 0.12
+  issued = 2019-12-02
+
+
+joshua-tree
+  rate = 7.35
+
+bethesda-fountain
+  rate = 25.50

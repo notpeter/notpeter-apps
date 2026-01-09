@@ -1,0 +1,6 @@
+; Overrides for 2003
+; Format: api-slug followed by indented field = value
+
+stop-family-violence
+  rate = 0.37
+  rate_type = Semipostal

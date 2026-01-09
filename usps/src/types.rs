@@ -163,6 +163,9 @@ pub struct Product {
     pub stamps_forever_url: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub images: Vec<String>,
+    /// Parsed product metadata (envelope size, style, closure, quantity)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
 }
 
 /// Complete stamp metadata

@@ -1,0 +1,6 @@
+; Overrides for 2005
+; Format: api-slug followed by indented field = value
+
+flag-and-statue-of-liberty
+  rate = 0.37
+  rate_type = Definitive
