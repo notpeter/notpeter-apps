@@ -1,0 +1,18 @@
+name = Star
+slug = star-3c-2002
+api_slug = star
+url = https://www.stampsforever.com/stamps/star
+year = 2002
+issue_date = 2002-06-07
+issue_location = Washington, DC
+rate = 0.03
+rate_type = Definitive
+forever = false
+type = stamp
+stamp_images
+  = 9PuSYtFUbGlbxSZG11fJvJR8aqg5hWkc3YWYIsUc.png
+background_color = 1e2778
+credits
+  art_director = Phil Jordan
+  designer = Phil Jordan
+about = This 3-cent definitive stamp, which will be issued in 2002, features a red, white, and blue graphic star.

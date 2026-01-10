@@ -1,0 +1,51 @@
+name = OSIRIS-REx
+slug = osiris-rex-forever-2023
+api_slug = osiris-rex
+url = https://www.stampsforever.com/stamps/osiris-rex
+year = 2023
+issue_date = 2023-09-22
+issue_location = Salt Lake City, UT
+rate = 0.78
+rate_type = Forever
+forever = true
+type = stamp
+stamp_images
+  = XeZdUGXELhdnMDc3VdsKmejKXQQKsOqjkkkWs1MS.png
+sheet_image = IGoUvVa1rYt2uz1SmYiYaV0QGHAO45csr3aJv19X.png
+background_color = 26457d
+credits
+  art_director = Antonio Alcalá
+  artist = Alan Dingman
+about = This 20-stamp pane from the U.S. Postal Service celebrates NASA’s seven-year OSIRIS-REx mission to study and map the asteroid Bennu and return a sample of the surface to Earth in September 2023. This is the first pristine sample of an asteroid collected by the United States, and it will help scientists learn how our solar system formed. The stamp artwork shows the capsule containing the sample parachuting to the Utah Test and Training Range, a U.S. Department of Defense facility in the desert. A depiction of Bennu’s surface appears at the bottom of the pane’s selvage with outer space above, deep blue and dappled with celestial bodies. A view of the asteroid is in the upper right corner. Along the left side of the pane are four images that illustrate crucial milestones in OSIRIS-REx’s mission. The top image shows OSIRIS-REx one year into the mission, passing 11,000 miles over Antarctica, as Earth’s gravity boosts the spacecraft toward Bennu. The second image represents OSIRIS-REx conducting its two-year global mapping campaign of Bennu, searching for the best location to collect a sample. The third image shows the spacecraft’s orbit in yellow, and its path to the asteroid in white. In the fourth image, OSIRIS-REx extends its robotic arm to Bennu’s surface to capture a sample of the asteroid. On the reverse side of the pane is text courtesy of NASA that describes the OSIRIS-REx mission and explains each image. OSIRIS-REx left Earth aboard a rocket launched from Cape Canaveral, Florida, on September 8, 2016, then orbited the Sun for a year before passing close to Earth for a gravity assist. The spacecraft arrived in the asteroid’s orbit in December 2018 and got to work. With its special cameras and spectrometers, it began photographing and mapping Bennu’s surface to determine the best site from which to collect samples. The time for the rendezvous arrived in October 2020. To carry out its task, the spacecraft did not actually land on the asteroid but instead slowly descended toward the surface and extended a robotic arm. A collection device at the hand-end of the arm then released a sudden puff of nitrogen gas that sent up a cloud of dust and rocks from Bennu’s surface. More than two ounces of these materials were captured in a special container in the collection device, which then closed and retracted into the spacecraft. On May 10, 2021, OSIRIS-REx began its flight back toward Earth. Its container of asteroid dust and rocks, enclosed in a special capsule, parachuted down to the Utah desert on September 24, 2023. Alan Dingman illustrated the stamp and pane, basing his work on images supplied by NASA. Art director Antonio Alcalá designed the stamp and pane. The OSIRIS-REx stamp is being issued as a Forever® stamp. This Forever stamp will always be equal in value to the current First-Class Mail® one-ounce rate.
+products
+  =
+    title = Pane of 20
+    long_title = OSIRIS-REx Pane of 20
+    price = $15.60
+    postal_store_url = https://store.usps.com/store/product/buy-stamps/osiris-rex-stamps-S_484204
+    stamps_forever_url = https://www.stampsforever.com/stamps/osiris-rex/484204
+    images
+      = Q0GlFQGHkmizPQbGJA8UqYhT9D6ErDv5f7owlzDt.jpg
+    metadata
+      format = pane
+      quantity = 20
+  =
+    title = Press Sheet with Die Cuts
+    long_title = OSIRIS-REx Press Sheet with Die Cuts
+    price = $140.40
+    postal_store_url = https://store.usps.com/store/product/stamp-collectors/osiris-rex-press-sheet-with-die-cuts-S_484206
+    stamps_forever_url = https://www.stampsforever.com/stamps/osiris-rex/484206
+    images
+      = qBQzsc65bJqRlATlqJx6Dosy6xbLOOoVbamFutgc.jpg
+    metadata
+      format = press-sheet
+  =
+    title = Press Sheet without Die Cuts
+    long_title = OSIRIS-REx Press Sheet without Die Cuts
+    price = $140.40
+    postal_store_url = https://store.usps.com/store/product/stamp-collectors/osiris-rex-press-sheet-without-die-cuts-S_484208
+    stamps_forever_url = https://www.stampsforever.com/stamps/osiris-rex/484208
+    images
+      = 7LflWvS1HHBrVe0cTrs2fEGf65pKO358c5bfrCzo.jpg
+    metadata
+      format = press-sheet

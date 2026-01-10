@@ -1,0 +1,15 @@
+name = NATO 50th Anniversary
+slug = nato-50th-anniversary-1999
+api_slug = nato-50th-anniversary
+url = https://www.stampsforever.com/stamps/nato-50th-anniversary
+year = 1999
+issue_date = 1999-10-13
+issue_location = Brussels, Belgium
+rate = 0.33
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = hfAl6qKCsb5llrtbKOR7SpqNbZxuGMeRpkm9YPRk.png
+background_color = 375585
+about = This stamp issuance celebrated the 50th anniversary of the formation of the North Atlantic Treaty Organization.

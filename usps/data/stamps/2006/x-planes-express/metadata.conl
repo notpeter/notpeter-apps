@@ -1,0 +1,18 @@
+name = X-Planes
+slug = x-planes-express-14d40c-2006
+api_slug = x-planes-express
+url = https://www.stampsforever.com/stamps/x-planes-express
+year = 2006
+issue_date = 2006-03-17
+issue_location = New York, NY
+rate = 14.4
+rate_type = Priority Mail Express
+forever = false
+type = stamp
+stamp_images
+  = KfoBwKcN42c3El5bA9VNZUsNKjxG09QaGNYarAqx.png
+sheet_image = ptuPEWaF3AuF2rHkkcUtHQariFCHgsPT47hFNz6V.png
+background_color = 365299
+credits
+  art_director = Phil Jordan
+  designer = Phil Jordan

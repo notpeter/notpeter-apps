@@ -1,0 +1,17 @@
+name = Kwanzaa
+slug = kwanzaa-1997
+api_slug = kwanzaa-2
+url = https://www.stampsforever.com/stamps/kwanzaa-2
+year = 1997
+issue_date = 1997-10-22
+issue_location = Los Angeles, CA
+rate = 0.32
+rate_type = First Class
+forever = false
+type = stamp
+series = Holiday Celebrations
+stamp_images
+  = sRX8jk3lZvoU9ao2qjr31GM0ySCLHPrTn194kRMU.png
+background_color = 125752
+credits
+  art_director = Derry Noyes

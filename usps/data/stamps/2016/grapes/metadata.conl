@@ -1,0 +1,53 @@
+name = 5¢ Grapes
+slug = grapes-5c-2016
+api_slug = grapes
+url = https://www.stampsforever.com/stamps/grapes
+year = 2016
+issue_date = 2016-02-19
+issue_location = Grapevine, TX
+rate = 0.05
+rate_type = Definitive
+forever = false
+type = stamp
+stamp_images
+  = A9Aa0wdf1Mj9VybSzxntCZDMzPgrsO3FgXFeDKZg.png
+sheet_image = cPzjmda5ByU3iSoaLQ5ziksHcYcPMeY616co3ORW.png
+background_color = 4F545F
+credits
+  art_director = Derry Noyes
+  designer = Derry Noyes
+about = Grapes , a five-cent definitive stamp, will be available in panes of 20. Two clusters of deep-purple Pinot noir grapes are depicted growing on vines among several green leaves. The artist used pen and ink and watercolor to produce the original art. A member of the genus Vitis , grapes have been cultivated for thousands of years dating back to the very beginning of civilization. Grapes can be eaten as a table fruit, dried to produce raisins, or crushed to make wine or juice. According to the Department of Agriculture, 7.8 million tons of grapes were grown commercially in the U.S. in 2014. The Pinot noir grapes pictured in the stamp art are aptly named. The deep-purple fruit — noir , French for “black” — grow in tight clusters shaped like a pinecone; pinot is a variant of pineau , the diminutive of pin , which means “pine” in French. The name refers to both the grape and the wine it produces. Believed to be one of the oldest cultivated grapes in the Vitis genus, the Pinot noir grape can produce one of the most highly prized and elegant wines in the world. Once thought to grow well only in Burgundy, France, the Pinot noir grape is now successfully grown in cooler climates around the world, including areas of the United States — northern California, New York, and Oregon, among others. Art director Derry Noyes designed this stamp with an existing illustration by John Burgoyne.
+products
+  =
+    title = Pane of 20
+    long_title = Grapes Pane of 20
+    price = $1.00
+    postal_store_url = https://store.usps.com/store/product/buy-stamps/grapes-stamps-S_111404
+    stamps_forever_url = https://www.stampsforever.com/stamps/grapes/111404
+    images
+      = 3H91LobcVhJlo43MrJshxGSrUwUYB4ggeiqAMLZw.jpg
+    metadata
+      format = pane
+      quantity = 20
+  =
+    title = Coil of 3,000
+    long_title = Grapes Coil of 3,000
+    price = $150.00
+    postal_store_url = https://store.usps.com/store/product/buy-stamps/grapes-stamps-S_781904
+    stamps_forever_url = https://www.stampsforever.com/stamps/grapes/750204
+    images
+      = DaM4OkZv3wsQ9IlhsLecPXfgR9i1M6O85HlDPJ3X.jpg
+    metadata
+      format = coil
+      quantity = 3000
+  =
+    title = Coil of 10,000
+    long_title = Grapes Coil of 10,000
+    price = $500.00
+    postal_store_url = https://store.usps.com/store/product/buy-stamps/grapes-stamps-S_781904
+    stamps_forever_url = https://www.stampsforever.com/stamps/grapes/781904
+    images
+      = PcLCbSW9o1hXwKl4fH6PPoMLWBFTFkVMNdjr8m6H.jpg
+    metadata
+      format = coil
+      quantity = 10000

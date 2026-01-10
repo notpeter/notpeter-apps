@@ -1,0 +1,16 @@
+name = H-series
+slug = uncle-sams-hat-1998
+api_slug = h-series
+url = https://www.stampsforever.com/stamps/h-series
+year = 1998
+issue_date = 1998-11-09
+issue_location = Troy, NY
+rate = 0.33
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = L9M6tyZMUaYzi1YzaaG1L3D4NT7S651hQzIeqcdY.png
+background_color = 164b83
+credits
+  artist = Tom Engeman

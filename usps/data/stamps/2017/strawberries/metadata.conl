@@ -1,0 +1,31 @@
+name = 3¢ Strawberries
+slug = strawberries-3c-2017
+api_slug = strawberries
+url = https://www.stampsforever.com/stamps/strawberries
+year = 2017
+issue_date = 2017-05-05
+issue_location = Acton, MA
+rate = 0.03
+rate_type = Definitive
+forever = false
+type = stamp
+stamp_images
+  = Zh7HEalYzLPREomdloPgcDDxtSK4u4ErbWnYqBEE.png
+sheet_image = OI3ZgRG99j2dAgzjRk6yuoIaY4XeVs4MLpez6non.png
+background_color = 7A462A
+credits
+  art_director = Derry Noyes
+  designer = Derry Noyes
+about = The U.S. Postal Service® introduced Strawberries , a 3-cent stamp for 2017. The stamp is sold in coils of 3,000 and 10,000. The stamp features a pen, ink, and watercolor illustration of three ripe, red strawberries surrounded by leaves and hulls and three smaller, green strawberries in various stages of growth. A small white flower from the strawberry plant completes the picture. Species of strawberry are native to temperate regions around the world, but the garden strawberry we know today — Fragaria x ananassa — is likely a hybrid of two species native to the Americas, Fragaria virginiana and Fragaria chiloensis. Native to North America, Fragaria virginiana, introduced into Europe in the 1600s , produces prolific numbers of aromatic but small berries. A century later, Fragaria chiloensis was brought to Europe from the New World; this species of strawberry, native to the west coasts of the Americas, produces large berries about the size of a walnut. The plants grew side-by-side in French gardens until the two species had cross-pollinated — by accident rather than design. Some of the resulting plants produced abundant numbers of large berries and were likely the ancestors of our modern garden strawberry, Fragaria x ananassa. By the mid-1800s, strawberries were a successful and established agricultural crop in the United States. They now grow in every state in the U.S., led by California, which produced 2.79 billion pounds of strawberries in 2015. Botanically, what we think of as the "fruit" of the strawberry is not actually the fruit. The luscious red edible part of the plant is the enlarged receptacle of the flower. The tiny "seeds" that dot the surface of the strawberry — approximately 200 on each berry — are the fruit. Called an achene, this small, dry fruit carries the plant’s seed inside. Art director Derry Noyes designed this stamp with an existing illustration by John Burgoyne.
+products
+  =
+    title = Coil of 3,000
+    long_title = Strawberries Coil of 3,000
+    price = $90.00
+    postal_store_url = https://store.usps.com/store/product/buy-stamps/strawberries-stamps-S_760304
+    stamps_forever_url = https://www.stampsforever.com/stamps/strawberries/750104
+    images
+      = SNAnJhDiiLMkIbxQ22744VfE2HqsCqqckkJnWTsv.jpg
+    metadata
+      format = coil
+      quantity = 3000

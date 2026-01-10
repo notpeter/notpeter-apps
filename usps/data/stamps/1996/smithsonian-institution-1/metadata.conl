@@ -1,0 +1,14 @@
+name = Smithsonian Institution
+slug = smithsonian-institution-1996
+api_slug = smithsonian-institution-1
+url = https://www.stampsforever.com/stamps/smithsonian-institution-1
+year = 1996
+issue_date = 1996-02-07
+rate = 0.32
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = OAeUOFh6XXtTZaoUjyvMjmgQJSgIOe4HLqE6NSNF.png
+background_color = 284648
+about = In 1996, the United States Postal Service celebrated the Smithsonian Institution's 150th anniversary with a stamp featuring the Smithsonian's administrative center, the "Castle."

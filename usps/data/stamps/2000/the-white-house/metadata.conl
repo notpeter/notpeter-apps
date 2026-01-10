@@ -1,0 +1,19 @@
+name = The White House
+slug = the-white-house-2000
+api_slug = the-white-house
+url = https://www.stampsforever.com/stamps/the-white-house
+year = 2000
+issue_date = 2000-10-18
+issue_location = Washington, DC
+rate = 0.33
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = jpFGUoPRwyB4OWzSw6243AhMQBswIkeAqrPVKY0D.png
+sheet_image = N6MNS9zuJp8pjre2k6pecex3WDKPdu5zuDTkl3fG.png
+background_color = 37466c
+credits
+  art_director = Derry Noyes
+  artist = Patricia Fisher
+about = The U.S. Postal Service joined the White House in commemorating the 200th anniversary of the first residency of the White House, an enduring symbol of the American Presidency. John Adams, the second President of the United States, moved into the unfinished “President’s House” in November 1800, eight years after the first stone was laid. Since that time, every President has lived in the Executive Mansion.

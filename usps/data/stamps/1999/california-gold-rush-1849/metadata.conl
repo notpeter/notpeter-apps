@@ -1,0 +1,17 @@
+name = California Gold Rush 1849
+slug = california-gold-rush-1849-1999
+api_slug = california-gold-rush-1849
+url = https://www.stampsforever.com/stamps/california-gold-rush-1849
+year = 1999
+issue_date = 1999-06-18
+issue_location = Sacramento, CA
+rate = 0.33
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = zrJhZ74NDR8cnwR8uxWHPtjweGrO3I2q1avlEll7.png
+background_color = 385D6C
+credits
+  designer = Phil Jordan
+about = This issuance commemorated the 150th anniversary of James W. Marshall’s discovery of gold at Sutter’s Mill in 1849.

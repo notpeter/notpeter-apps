@@ -1,0 +1,18 @@
+name = Landing on the Moon
+slug = landing-on-the-moon-11d75c-2000
+api_slug = landing-on-the-moon
+url = https://www.stampsforever.com/stamps/landing-on-the-moon
+year = 2000
+issue_date = 2000-07-08
+issue_location = Anaheim, CA
+rate = 11.75
+rate_type = Priority Mail Express
+forever = false
+type = stamp
+series = Space Achievement
+stamp_images
+  = lb83LKOaQfCSjefT7KeqMYH0lwURxbRQ0oypmFbb.png
+sheet_image = p5hWSjKN03TykbmLfTwZnTIAGawNU4xxlXsr47rB.png
+background_color = 2D5C6F
+credits
+  art_director = Richard Sheaff

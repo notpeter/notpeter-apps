@@ -1,0 +1,15 @@
+name = Klondike Gold Rush
+slug = klondike-gold-rush-1998
+api_slug = klondike-gold-rush
+url = https://www.stampsforever.com/stamps/klondike-gold-rush
+year = 1998
+issue_date = 1998-08-21
+issue_location = Nome, AK
+rate = 0.32
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = LhHfvvCEygX3ruSoIhazn66BZ0SoqR8ACEJ9742D.png
+background_color = 375879
+about = This issuance marked the 100th anniversary of the peak of the Klondike Gold Rush. Although gold was discovered in this region two years earlier, more than 60,000 people rushed to Alaska and Canada in search of their fortune in 1898.

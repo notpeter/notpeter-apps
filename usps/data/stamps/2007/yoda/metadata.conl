@@ -1,0 +1,19 @@
+name = Yoda
+slug = yoda-2007
+api_slug = yoda
+url = https://www.stampsforever.com/stamps/yoda
+year = 2007
+issue_date = 2007-10-25
+issue_location = New York, NY
+rate = 0.41
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = Px6K62cjMiN2h7naTqVKbZUe7tk0UEMMsD5QfcrR.png
+sheet_image = kPunPaaVezjG1bxvFnXpCltofJ5keeYIumlt2KrA.png
+background_color = 355B61
+credits
+  art_director = William Gicker
+  designer = William Gicker
+about = Although diminutive and unassuming, Yoda is a respected member of the Jedi Council and has no equal in his keen insight into the Force. A wise teacher of young Jedi for 800 years — and remarkably agile with a lightsaber — Yoda goes into hiding on the swamp planet of Dagobah after the fall of the Republic. By ensuring his own survival, he helps his last apprentice, Luke Skywalker, to fulfill his destiny, thus honoring the Jedi legacy and finally restoring peace to the galaxy.

@@ -1,0 +1,22 @@
+name = American Glass
+slug = american-glass-1999
+api_slug = american-glass
+url = https://www.stampsforever.com/stamps/american-glass
+year = 1999
+issue_date = 1999-06-29
+issue_location = Corning, NY
+rate = 0.33
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = jaUD43uNuMFJD5YrM8UKGVg8YN4ByiCc44noZihP.png
+  = 8Bx3ERvCp4UCBwTScFgTxqJYkhWUmgUWqc8R0A6E.png
+  = P8VljCfGEpFIMMeaSr17vc9Ae30gJ01Uh3hfEtU7.png
+  = P0TQrI9rIk7cqZQdP7j7Lcq0kGFT6IhZLenzQCKp.png
+sheet_image = hX03rXKTTzaVoPIIz5T9rTMqh6ILUCOvCwhvmL9p.png
+background_color = 381a42
+credits
+  art_director = Richard Sheaff
+  designer = Richard Sheaff
+about = This issuance celebrates glassmaking, an American art and industry since the 1800s.

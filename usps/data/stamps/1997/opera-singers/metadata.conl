@@ -1,0 +1,21 @@
+name = Opera Singers
+slug = opera-singers-1997
+api_slug = opera-singers
+url = https://www.stampsforever.com/stamps/opera-singers
+year = 1997
+issue_date = 1997-09-10
+issue_location = New York, NY
+rate = 0.32
+rate_type = First Class
+forever = false
+type = stamp
+series = Legends of American Music
+stamp_images
+  = 6JJqXIygx6Ymvd00oadQr0mQ4wEQOmNhfTfBRX6K.png
+  = MmKgV31hE1WFxPinbx8vKocUgmbt1KkYvlBxAEkf.png
+  = JwCYsa5EAz8kMVTDHYLV5wbr7Le2rjFoCN58St3I.png
+  = 1PARbYePAFJvzfFYwt4IKEizLyDQkGnbbWDL0aBm.png
+background_color = 194265
+credits
+  art_director = Howard E. Paine
+about = The United States Postal Service honored opera singers with this issuance, issued at the Metropolitan Opera House in New York, New York.

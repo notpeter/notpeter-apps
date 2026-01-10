@@ -1,0 +1,16 @@
+name = Ballet
+slug = ballet-1998
+api_slug = ballet
+url = https://www.stampsforever.com/stamps/ballet
+year = 1998
+issue_date = 1998-09-16
+issue_location = New York, NY
+rate = 0.32
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = CYxZ3ReE0zyz9H3gtzEfC9WxlP55MZpgeUVcjNPI.png
+sheet_image = ULRQpKrUgteFdBQCKNqfsz2owr8Y8BGk23iwH6aV.png
+background_color = 80335A
+about = This issuance celebrates the art of ballet.

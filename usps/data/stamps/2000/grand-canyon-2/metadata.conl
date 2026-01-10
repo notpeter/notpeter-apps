@@ -1,0 +1,15 @@
+name = Grand Canyon
+slug = grand-canyon-60c-2000
+api_slug = grand-canyon-2
+url = https://www.stampsforever.com/stamps/grand-canyon-2
+year = 2000
+issue_date = 2000-01-20
+issue_location = Grand Canyon, AZ
+rate = 0.6
+rate_type = International
+forever = false
+type = stamp
+series = Scenic American Landscapes
+stamp_images
+  = mAaC1wAjQErxXQCGxXCR9G3VP3bLysZfFtSvNF01.png
+background_color = 68494C

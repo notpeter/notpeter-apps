@@ -1,0 +1,16 @@
+name = Centennial Olympic Games
+slug = centennial-olympic-games-1996
+api_slug = centennial-olympic-games
+url = https://www.stampsforever.com/stamps/centennial-olympic-games
+year = 1996
+issue_date = 1996-07-11
+issue_location = Atlanta, GA
+rate = 0.32
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = 27ziGtPLWcOBp1VPvSHUXeRlxLk4acJLtqnreGws.png
+background_color = 784708
+credits
+  art_director = Carl T. Herrman

@@ -1,0 +1,17 @@
+name = Wisconsin Statehood
+slug = wisconsin-statehood-1998
+api_slug = wisconsin-statehood
+url = https://www.stampsforever.com/stamps/wisconsin-statehood
+year = 1998
+issue_date = 1998-05-29
+issue_location = Madison, WI
+rate = 0.32
+rate_type = First Class
+forever = false
+type = stamp
+series = Statehood
+stamp_images
+  = 6tunjS4JVdSBckr9BNA1OPqpfOsdk8QdnlS11jBy.png
+sheet_image = be6RRj5YvDX1RPtq6xKytB7WufHBxJPXyh3x7AtZ.png
+background_color = 444276
+about = This issuance celebrates the 150th anniversary of Wisconsin’s statehood.

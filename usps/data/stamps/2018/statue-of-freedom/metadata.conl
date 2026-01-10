@@ -1,0 +1,30 @@
+name = $1 Statue of Freedom
+slug = statue-of-freedom-2018
+api_slug = statue-of-freedom
+url = https://www.stampsforever.com/stamps/statue-of-freedom
+year = 2018
+issue_date = 2018-06-27
+issue_location = Bellefonte, PA
+rate_type = Definitive
+forever = false
+type = stamp
+stamp_images
+  = 13Lw3YhpszWsMic1YFqbPfjxAljD0THMdxiGyLRR.png
+sheet_image = lI2kLFDPZMzGGRYTW9Fukcegxzdw388rbynHe3YX.png
+background_color = 01513B
+credits
+  art_director = Greg Breeding
+  designer = Greg Breeding
+about = The U.S. Postal Service® issues $1 Statue of Freedom , offering a modern take on vintage patriotic stamp art for use on packages, large envelopes, and other mailings. The design features the head of the statue that tops the United States Capitol dome, in a modern interpretation based on an engraved vignette created for a 1923 stamp ( $5 Head of Freedom Statue ). The original engraved artwork was created for the U.S. Bureau of Engraving and Printing by John Eissler (1873–1962). The tightly cropped enlargement, here rendered in emerald green, highlights the solid and dashed lines and the crosshatching characteristic of engraved illustration. American sculptor Thomas Crawford (1814–1857) created the allegorical Statue of Freedom during the mid-1850s. She wears a variation on a Roman helmet—circled by stars, topped with an eagle head, and embellished by feathered plumes meant to evoke Native American headdress. The statue’s installation onto the new Capitol dome was completed in 1863. This stamp was printed in intaglio. Art director Greg Breeding designed the stamp. $1 Statue of Freedom will be sold in sheets of ten stamps.
+products
+  =
+    title = Pane of 10
+    long_title = $1 Statue of Freedom Pane of 10
+    price = $10.00
+    postal_store_url = https://store.usps.com/store/product/buy-stamps/1-dollar-statue-of-freedom-stamps-S_114204
+    stamps_forever_url = https://www.stampsforever.com/stamps/statue-of-freedom/114204
+    images
+      = GBjDdj7Q0rHXxQID2LuWjMzUjDH06bMjDDxMNodM.jpg
+    metadata
+      format = pane
+      quantity = 10

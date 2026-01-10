@@ -1,0 +1,15 @@
+name = City Flag
+slug = city-flag-1999
+api_slug = city-flag
+url = https://www.stampsforever.com/stamps/city-flag
+year = 1999
+issue_date = 1999-02-25
+issue_location = Orlando, FL
+rate = 0.33
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = OeJWAeQOAE1Annix0WjQ9Tp0NM630JVIdVpYLWL9.png
+background_color = 005960
+about = The City Flag issuance features "Old Glory" with the skyscrapers of a city reaching into a cloudless sky.

@@ -1,0 +1,18 @@
+name = Wreaths
+slug = wreaths-1998
+api_slug = wreaths
+url = https://www.stampsforever.com/stamps/wreaths
+year = 1998
+issue_date = 1998-10-15
+issue_location = Christmas, MI
+rate = 0.32
+rate_type = First Class
+forever = false
+type = stamp
+series = Holiday Celebration: Holiday
+stamp_images
+  = M1uniScUJBTNYKeybMfQa1X5CtmkF2Hb6JNwy8sE.png
+  = qENSTPHqBCqkbEspKd122XIvcJqnYoFK5x8FCaZT.png
+  = mAD4XSNf33C4BqeVJWovApbKBnCsXRWWcim8Yptp.png
+  = 2swLSXBLX4jvwAlhVk9Z8gxFklyQAwULQktYQT0F.png
+background_color = 345c34

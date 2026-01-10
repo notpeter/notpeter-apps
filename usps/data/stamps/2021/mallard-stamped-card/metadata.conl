@@ -1,0 +1,38 @@
+name = Mallard Stamped Card
+slug = mallard-stamped-card-2021
+api_slug = mallard-stamped-card
+url = https://www.stampsforever.com/stamps/mallard-stamped-card
+year = 2021
+issue_date = 2021-06-01
+issue_location = Fargo, ND
+rate_type = Other
+forever = false
+type = card
+stamp_images
+  = hik69lx4AFvglOEeF6yULtHHuXi8Qcp5I5x9PBNu.png
+background_color = 3B6327
+credits
+  art_director = Ethel Kessler
+  designer = Ethel Kessler
+about = The U.S. Postal Service issues a stamped card for 2021 featuring a mallard drake in his sporty breeding plumage. The stamp art shows the mallard (Anas platyrhynchos) in pre-existing artwork by famed illustrator and designer Dugald Stermer (1936–2011). Stermer drew this realistic full-body, left-facing profile in pencil, coloring it with a watercolor wash. To the right of the artwork, “USA / FOREVER” is printed vertically. Mallards range widely throughout the Northern Hemisphere including the U.S. Great Plains. Each year as the weather chills, millions more migrate from Alaska and Canada into the contiguous United States. Mallards are dabbling ducks, meaning that they tip, tail-up, in shallow water to feed. They eat mostly vegetation but also insects and small crustaceans. On land, they often feed on waste grain left in farm fields. The average adult mallard weighs almost three pounds. A mallard drake competes with other males for a mallard hen. He shows off his breeding finery: iridescent green head, white neck ring, chestnut breast, and curled black tail feathers. In summer, once the hen has laid her eggs, the drake molts out of his breeding plumage and closely resembles the mottled brown hen. The drake’s fancy feathers will grow back in autumn to signal the beginning of another annual mating cycle. Art director Ethel Kessler designed the stamped card. Mallard is being issued as a Forever® stamped card. Its postage will always be equal to the value of the stamped postcard rate in effect at the time of use, even if the price increases after purchase.
+products
+  =
+    title = Stamped Card (set of 10)
+    long_title = Mallard Stamped Card Stamped Card (set of 10)
+    price = $6.90
+    postal_store_url = https://store.usps.com/store/product/cards-envelopes/mallard-stamp-card-S_250610
+    stamps_forever_url = https://www.stampsforever.com/stamps/mallard-stamped-card/250610
+    images
+      = zwxWlvf2lZMy9OI28gpRJ6njZwRhQzlZtdNTP1Bn.jpg
+    metadata
+      format = stamped-card
+  =
+    title = Double Reply Card
+    long_title = Mallard Stamped Card Double Reply Card
+    price = $1.24
+    postal_store_url = https://store.usps.com/store/product/cards-envelopes/mallard-double-reply-stamped-card-S_250704
+    stamps_forever_url = https://www.stampsforever.com/stamps/mallard-stamped-card/250704
+    images
+      = 4svJTnQGzyCfKV3RaUcgpf47ZFAkutnZ7nm7SE0v.jpg
+    metadata
+      format = double-reply-card

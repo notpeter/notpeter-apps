@@ -1,0 +1,17 @@
+name = Flowers
+slug = flowers-34c-2000
+api_slug = flowers
+url = https://www.stampsforever.com/stamps/flowers
+year = 2000
+issue_date = 2000-12-15
+issue_location = Washington, DC
+rate = 0.34
+rate_type = First Class
+forever = false
+type = stamp
+stamp_images
+  = EmM1KffGdkqmkrdwRMLWbmtj0f2iRXkJrTWrTQpa.png
+  = BxsblZiDBYJ8BTaqpfQOn3RiSMJuDPqHLq8EJaLF.png
+  = 2zqfwFRevZl557gorbtwV4Grk66upIoKWqbWvBZZ.png
+  = ILvo4CMo0EyrsHhMu9WdWdpIkb7PWv6WgkELfLTR.png
+background_color = 562d2d

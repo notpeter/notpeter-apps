@@ -1,0 +1,17 @@
+name = Washington Monument
+slug = washington-monument-12d95c-2001
+api_slug = washington-monument
+url = https://www.stampsforever.com/stamps/washington-monument
+year = 2001
+issue_date = 2001-01-29
+rate = 12.95
+rate_type = Priority Mail Express
+forever = false
+type = stamp
+stamp_images
+  = QzU6bIFghmEnXkiwDEKHlfr3RXHr1h3R1AqahSNP.png
+background_color = 863C08
+credits
+  art_director = Derry Noyes
+  artist = Patricia Fisher
+about = A prominent landmark in the nation’s capital, the Washington Monument is the subject chosen by the U.S. Postal Service for this express mail stamp.

@@ -1,0 +1,15 @@
+name = Acadia National Park
+slug = acadia-national-park-60c-2001
+api_slug = acadia-national-park
+url = https://www.stampsforever.com/stamps/acadia-national-park
+year = 2001
+issue_date = 2001-05-30
+issue_location = Ben Harbor, ME
+rate = 0.6
+rate_type = International
+forever = false
+type = stamp
+series = Scenic American Landscapes
+stamp_images
+  = ok458yB9EXKRFs7ijN2LvFzIlpsd5ADZA3ptakUA.png
+background_color = 89373d

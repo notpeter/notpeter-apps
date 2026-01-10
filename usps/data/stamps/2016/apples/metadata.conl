@@ -1,0 +1,39 @@
+name = 1¢ Apples
+slug = apples-1c-2016
+api_slug = apples
+url = https://www.stampsforever.com/stamps/apples
+year = 2016
+issue_date = 2016-08-12
+issue_location = Kansas City, MO
+rate = 0.01
+rate_type = Definitive
+forever = false
+type = stamp
+stamp_images
+  = PCezFOlkqgiJWPzL4WbIMeGKkvcrNYDRSGtHqj95.png
+background_color = 933B01
+credits
+  art_director = Derry Noyes
+  designer = Derry Noyes
+about = In 2016, the U.S. Postal Service® issued Apples , a one-cent definitive stamp. The stamp design features two apples on a branch surrounded by leaves. The original art for this stamp was illustrated using pen and ink and watercolor. Also known as the Newtown pippin, the Albemarle pippin apple has deep historical roots. It first appeared in the late 17th century in an area of Queens, New York, formerly known as Newtown. The word “pippin” indicates that the trees originated from seedlings rather than from grafting—a technique common in the propagation of apple trees. Savored for their crisp flesh and balanced flavor, these medium-sized, reddish-yellow and green apples soon gained popularity throughout colonial America. In 1755, Dr. Thomas Walker introduced them in Virginia when he returned home from the French and Indian War with a pile of cuttings. Grown on Walker’s plantation in Albemarle County, the celebrated New York apple received a new name and wider distribution. Though harvesting of Albemarle pippins usually takes place in October, they are often considered a late-winter fruit. Unlike many other heirloom apple varieties, these durable apples maintain quality in storage, their initial tartness mellowing over time. By February, the apples still retain their characteristic flavor that makes them difficult to resist. The distinctive aroma and pleasant taste of the Albemarle pippin make it well suited for pie fillings, applesauce, and especially cider. Art director Derry Noyes designed this stamp with an existing illustration by John Burgoyne.
+products
+  =
+    title = Coil of 10,000
+    long_title = Apples Coil of 10,000
+    price = $100.00
+    stamps_forever_url = https://www.stampsforever.com/stamps/apples/780004
+    images
+      = owDM5OYXgcGIS36NxNAFlWRjtTkD01628QoQyqUR.jpg
+    metadata
+      format = coil
+      quantity = 10000
+  =
+    title = Coil of 3,000
+    long_title = Apples Coil of 3,000
+    price = $30.00
+    stamps_forever_url = https://www.stampsforever.com/stamps/apples/782304
+    images
+      = EQR0CBvlN4FVqaILyDW2mWrLpOA7OJRQ2lnPf0FJ.jpg
+    metadata
+      format = coil
+      quantity = 3000

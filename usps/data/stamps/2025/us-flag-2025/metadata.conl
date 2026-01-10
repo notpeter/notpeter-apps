@@ -1,0 +1,77 @@
+name = U.S. Flag
+slug = us-flag-forever-2025
+api_slug = us-flag-2025
+url = https://www.stampsforever.com/stamps/us-flag-2025
+year = 2025
+issue_date = 2025-06-07
+issue_location = Three Oaks, MI
+rate = 0.78
+rate_type = Forever
+forever = true
+type = stamp
+series = U.S. Flags
+stamp_images
+  = B54VhP3K9FiaK8qMcSLFrqgT7bTanccQYJ33dR0j.png
+sheet_image = iFOXDmn9yJykrjNEfrDQ12upVvxpBi2eeRo5xTAh.png
+background_color = 9d2a2e
+credits
+  art_director = Antonio Alcalá
+  designer = Antonio Alcalá
+about = The U.S. Postal Service continues its long tradition of honoring the flag of the United States with a new stamp available in booklets of 20, panes of 20, and coils of 100, 3,000, and 10,000. The stamp features an image of the Stars and Stripes, fluttered by a breeze, against a bright white background. Beneath the flag, “UNITED STATES OF AMERICA” has been rendered in blue type above a horizontal red line. “FOREVER / USA” appears along the bottom of the stamp in gray lettering. The current American flag consists of 13 alternating horizontal stripes — seven red and six white—and 50 stars on a field of blue. The flag's 13 stripes represent the 13 colonies that declared independence from Great Britain, while the number of stars on the flag matches the number of states in the Union. The flag's 50th star was added on July 4, 1960, after Hawai‘i became a state in 1959. An enduring emblem of freedom, national unity, and patriotic spirit, Old Glory waves proudly outside government offices, schools, military bases, and USPS facilities. Flags stand watch over the Capitol Building in Washington, D.C., and encircle the base of the Washington Monument. Flag Day, first proclaimed by President Woodrow Wilson in 1916, is observed every year on June 14. Art director Antonio Alcalá designed the stamp using a photograph by Doug Haight. The U.S. Flag stamp is being issued as a Forever® stamp. This Forever stamp will always be equal in value to the current First-Class Mail® one-ounce price.
+products
+  =
+    title = Pane of 20
+    long_title = U.S. Flag (2025) Pane of 20
+    price = $15.60
+    postal_store_url = https://store.usps.com/store/product/us-flags-2025-stamps-S_124204
+    stamps_forever_url = https://www.stampsforever.com/stamps/us-flag-2025/124204
+    images
+      = n9kRqWE0zLB8jFPAY5S8cKx1GOj0UM3vLnaMVB1B.jpg
+    metadata
+      format = pane
+      quantity = 20
+  =
+    title = Booklet of 20 (2-sided)
+    long_title = U.S. Flag (2025) Booklet of 20 (2-sided)
+    price = $15.60
+    postal_store_url = https://store.usps.com/store/product/us-flags-2025-stamps-S_124204
+    stamps_forever_url = https://www.stampsforever.com/stamps/us-flag-2025/685404
+    images
+      = UMq1Xyb21eD43AetWbtCVPlrresFNsG6ftrDMTg3.jpg
+    metadata
+      format = booklet
+      quantity = 20
+      sided = 2
+  =
+    title = Coil of 100
+    long_title = U.S. Flag (2025) Coil of 100
+    price = $78.00
+    postal_store_url = https://store.usps.com/store/product/us-flags-2025-stamps-S_124204
+    stamps_forever_url = https://www.stampsforever.com/stamps/us-flag-2025/741002
+    images
+      = L8yIW4Vmpz1kpXw8TPv086wUzA9M4KvkmL3FGEni.jpg
+    metadata
+      format = coil
+      quantity = 100
+  =
+    title = Coil of 3,000
+    long_title = U.S. Flag (2025) Coil of 3,000
+    price = $2,340.00
+    postal_store_url = https://store.usps.com/store/product/us-flags-2025-stamps-S_124204
+    stamps_forever_url = https://www.stampsforever.com/stamps/us-flag-2025/752104
+    images
+      = fZj3BjN76GAk5iJvgEt33zsBOZ3lEmh7428xImeb.jpg
+    metadata
+      format = coil
+      quantity = 3000
+  =
+    title = Coil of 10,000
+    long_title = U.S. Flag (2025) Coil of 10,000
+    price = $7,800.00
+    postal_store_url = https://store.usps.com/store/product/us-flags-2025-stamps-S_124204
+    stamps_forever_url = https://www.stampsforever.com/stamps/us-flag-2025/762804
+    images
+      = B0EZZzBmhzCFzYPrGDppGkLgtDbB144gnum2tptG.jpg
+    metadata
+      format = coil
+      quantity = 10000
