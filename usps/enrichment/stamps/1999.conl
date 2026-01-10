@@ -1,2 +1,26 @@
 ; Overrides for 1999
 ; Format: api-slug followed by indented field = value
+
+
+year-of-the-rabbit-1999
+  rate = 0.33
+
+; TODO: Wonder what this rate was for
+universal-postal-union
+  rate = 0.45
+  rate_type = Definitive
+
+gen-william-billy-l-mitchell
+  rate_type = Two Ounce
+justin-s-morrill
+  rate_type = Two Ounce
+victorian-love
+  rate_type = Two Ounce
+
+rio-grande
+  rate = 0.40
+  rate_type = International
+
+niagara-falls-1
+  rate = 0.48
+  rate_type = International

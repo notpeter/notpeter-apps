@@ -1,2 +1,9 @@
 ; Overrides for 1997
 ; Format: api-slug followed by indented field = value
+
+love-swans
+  rate_type = Two Ounce
+
+mars-pathfinder
+  rate = 3.00
+  rate_type = Definitive

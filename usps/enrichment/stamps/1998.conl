@@ -5,7 +5,30 @@ alexander-calder
   rate = 0.32
   rate_type = Definitive
 
+uncle-sam
+  rate = 0.22
+  rate_type = Postcard
+
+ring-neck-pheasant
+  rate_type = Postcard
+
 h-series
   rate = 0.33
+  rate_type = First Class
+  slug = uncle-sams-hat-1998
+
+mary-breckinridge
+  rate = 0.77
+  rate_type = Three Ounce
+
+red-fox-1
+  rate = 1.00
   rate_type = Definitive
-  slug = uncle-sams-hat-33c-1998
+
+space-shuttle-landing
+  rate = 3.20
+  rate_type = Priority Mail
+
+space-shuttle-piggyback
+  rate = 11.75
+  rate_type = Priority Mail Express

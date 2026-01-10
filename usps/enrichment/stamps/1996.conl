@@ -1,2 +1,22 @@
 ; Overrides for 1996
 ; Format: api-slug followed by indented field = value
+
+
+; TODO Wonder if this had a std rate purpose
+cycling
+  rate = 0.50
+  rate_type = Definitive
+jacqueline-cochran
+  rate = 0.50
+  rate_type = Definitive
+
+red-headed-woodpecker
+  rate = 0.02
+  rate_type = Definitive
+
+f-scott-fitzgerald
+  rate = 0.23
+  rate_type = Definitive
+
+blue-jay
+  rate_type = Postcard
