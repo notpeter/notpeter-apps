@@ -29,6 +29,7 @@ four-flags
 baltimore-checkerspot
   rate_type = Two Ounce
   rate = 0.65
+  forever = false
 lancaster-county-pennsylvania-1 ; airmail 1oz non-canda/mexico
   rate = 1.05
   rate_type = International
@@ -43,4 +44,7 @@ weather-vanes
 aloha-shirts
   rate = 0.32
   forever = false
-sailboat-stamped-card
+birds-of-prey
+  forever = false
+dogs-at-work-1
+  forever = false

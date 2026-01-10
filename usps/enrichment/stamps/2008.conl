@@ -3,6 +3,7 @@
 
 tropical-fruit
   rate_type = Postcard
+  rate = 0.27
 
 flags-247
   rate = 0.42

@@ -1,19 +1,19 @@
 ; Overrides for 2009
 ; Format: api-slug followed by indented field = value
 
-flag-2
-  rate = 0.44
-  rate_type = Definitive
+; flag-2
+;   rate = 0.44
+;   rate_type = Definitive
 
-kwanzaa-4
-  rate = 0.44
-  rate_type = Definitive
+; kwanzaa-4
+;   rate = 0.44
+;   rate_type = Definitive
 
 grand-teton-national-park-wyoming
   rate = 0.98
 
 zion-national-park-utah
-  rate = 1.70
+  rate = 0.79
 
 redwood-forest
   rate = 4.95
@@ -25,4 +25,30 @@ mary-lasker
   rate = 0.78
 
 wedding-cake-4
-  rate = 1.07
+  rate = 0.61
+
+polar-bear
+  rate_type = Postcard
+  rate = 0.28
+
+king-and-queen-of-hearts
+  rate = 0.44
+
+the-simpsons
+  rate = 0.44
+
+flag-2
+  rate = 0.44
+
+wedding-rings
+  rate = 0.44
+
+richard-wright
+  rate_type = Two Ounce
+
+dolphin
+  rate_type = Nonmachineable Surcharge
+  rate = 64
+
+justices-of-the-supreme-court-of-the-united-states-souvenir-sheet
+  slug = justices-of-the-supreme-court-of-the-united-states

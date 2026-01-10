@@ -15,6 +15,7 @@ okefenokee-swamp-georgiaflorida
 
 american-flag
   forever = false
+  rate_type = First Class
 
 forever-stamp-liberty-bell
   rate_type = Forever
@@ -30,7 +31,7 @@ tiffany-lamp
   rate = 0.01
 
 harriet-beecher-stowe
-  rate_type = Two Ounce
+  rate_type = Three Ounce
 
 air-force-one
   rate_type = Priority Mail
@@ -41,3 +42,7 @@ pink-heart
 
 margaret-chase-smith
   rate_type = Two Ounce
+
+marine-one
+  rate_type = Priority Mail Express
+  rate = 16.25

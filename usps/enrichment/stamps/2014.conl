@@ -26,15 +26,15 @@ rudolph-the-red-nosed-reindeer
   rate_type = Forever
 
 c-alfred-chief-anderson-1; two ounce
-  rate = 70
+  rate = 0.70
   forever = false
 
 ralph-ellison; three ounce
-  rate = 91
+  rate = 0.91
   forever = false
 
 abraham-lincoln-memorial-statue; second-ounce
-  rate = 21
+  rate = 0.21
   forever = false
   rate_type = Additional Ounce
 
@@ -50,4 +50,5 @@ glade-creek-grist-mill
 great-spangled-fritillary
   rate = 0.70
 
-  ;
+humming-bird
+  rate = 0.34

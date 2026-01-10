@@ -56,7 +56,7 @@ pub struct Product {
     pub long_title: Option<String>,
     pub price: Option<String>,
     pub postal_store_url: Option<String>,
-    pub stamps_forever_url: Option<String>,
+    pub _stamps_forever_url: Option<String>,
     pub images: Vec<String>,
     pub metadata: Option<ProductMetadata>,
 }
@@ -87,12 +87,16 @@ impl Product {
                         _ => return self.long_title.as_ref().unwrap_or(&self.title).clone(),
                     };
                     // Format size: "#6-3/4" -> "#6 3/4"
-                    let size = meta.size.as_ref()
+                    let size = meta
+                        .size
+                        .as_ref()
                         .map(|s| s.replacen("-", " ", 1))
                         .unwrap_or_default();
                     let qty = meta.quantity.unwrap_or(5);
-                    return format!("{} Stamped {}Envelope ({} pack, {}, {})",
-                        stamp_name, windowed, qty, closure, size);
+                    return format!(
+                        "{} Stamped {}Envelope ({} pack, {}, {})",
+                        stamp_name, windowed, qty, closure, size
+                    );
                 }
                 "booklet" => {
                     let qty = meta.quantity.unwrap_or(20);
@@ -110,7 +114,11 @@ impl Product {
                 "coil" => {
                     let qty = meta.quantity.unwrap_or(100);
                     let formatted_qty = if qty >= 1000 {
-                        format!("{},{}", qty / 1000, format!("{:03}", qty % 1000).trim_start_matches('0'))
+                        format!(
+                            "{},{}",
+                            qty / 1000,
+                            format!("{:03}", qty % 1000).trim_start_matches('0')
+                        )
                     } else {
                         qty.to_string()
                     };
@@ -118,7 +126,11 @@ impl Product {
                 }
                 "stamped-card" | "double-reply-card" => {
                     let qty = meta.quantity.unwrap_or(10);
-                    let card_type = if meta.format == "double-reply-card" { "Double Reply Card" } else { "Stamped Card" };
+                    let card_type = if meta.format == "double-reply-card" {
+                        "Double Reply Card"
+                    } else {
+                        "Stamped Card"
+                    };
                     return format!("{} {} ({} pack)", stamp_name, card_type, qty);
                 }
                 _ => {}
@@ -672,23 +684,37 @@ fn load_stamp(conl_path: &Path) -> Result<Stamp> {
                 .unwrap_or_default();
 
             // Parse product metadata
-            let metadata = prod.get("metadata").and_then(|v| v.as_object()).map(|meta| {
-                ProductMetadata {
-                    format: meta.get("format").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                    quantity: meta.get("quantity").and_then(|v| v.as_str()).and_then(|s| s.parse().ok()),
+            let metadata = prod
+                .get("metadata")
+                .and_then(|v| v.as_object())
+                .map(|meta| ProductMetadata {
+                    format: meta
+                        .get("format")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                    quantity: meta
+                        .get("quantity")
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| s.parse().ok()),
                     size: meta.get("size").and_then(|v| v.as_str()).map(String::from),
                     style: meta.get("style").and_then(|v| v.as_str()).map(String::from),
-                    closure: meta.get("closure").and_then(|v| v.as_str()).map(String::from),
-                    sided: meta.get("sided").and_then(|v| v.as_str()).and_then(|s| s.parse().ok()),
-                }
-            });
+                    closure: meta
+                        .get("closure")
+                        .and_then(|v| v.as_str())
+                        .map(String::from),
+                    sided: meta
+                        .get("sided")
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| s.parse().ok()),
+                });
 
             products.push(Product {
                 title,
                 long_title,
                 price,
                 postal_store_url,
-                stamps_forever_url,
+                _stamps_forever_url: stamps_forever_url,
                 images,
                 metadata,
             });
@@ -1545,10 +1571,15 @@ fn page_footer() -> &'static str {
 fn rate_type_to_category(rate_type: Option<&str>) -> Option<(&'static str, &'static str)> {
     match rate_type {
         Some("Forever") | Some("Semipostal") => Some(("forever-stamps", "Forever")),
-        Some("Additional Ounce") | Some("Two Ounce") | Some("Three Ounce") | Some("Additional Postage") => {
+        Some("Additional Ounce")
+        | Some("Two Ounce")
+        | Some("Three Ounce")
+        | Some("Additional Postage") => {
             Some(("additional-postage-forever-stamps", "Additional Postage"))
         }
-        Some("Nonmachineable Surcharge") => Some(("non-machinable-forever-stamps", "Non-Machinable")),
+        Some("Nonmachineable Surcharge") => {
+            Some(("non-machinable-forever-stamps", "Non-Machinable"))
+        }
         Some("International") | Some("Global Forever") => Some(("global-forever-stamps", "Global")),
         Some("Postcard") => Some(("postcard-forever-stamps", "Postcard")),
         _ => None,
@@ -1995,7 +2026,8 @@ fn generate_category_page(
                 // Sort by rate descending, then by year desc, then name
                 let rate_a = a.rate.unwrap_or(0.0);
                 let rate_b = b.rate.unwrap_or(0.0);
-                rate_b.partial_cmp(&rate_a)
+                rate_b
+                    .partial_cmp(&rate_a)
                     .unwrap_or(std::cmp::Ordering::Equal)
                     .then_with(|| b.year.cmp(&a.year))
                     .then_with(|| a.name.cmp(&b.name))
@@ -2026,7 +2058,8 @@ fn generate_category_page(
                 let is_forever_a = a.rate.is_none();
                 let is_forever_b = b.rate.is_none();
                 // Forever (true) should come before non-forever (false)
-                is_forever_b.cmp(&is_forever_a)
+                is_forever_b
+                    .cmp(&is_forever_a)
                     .then_with(|| b.year.cmp(&a.year))
                     .then_with(|| b.issue_date.cmp(&a.issue_date))
                     .then_with(|| a.name.cmp(&b.name))

@@ -41,6 +41,7 @@ kate-smith
 monarch-butterfly
   rate = 0.64
   rate_type = Two Ounce
+  forever = false
 katharine-hepburn
   rate = 0.44 ; first-class
   rate_type = Definitive

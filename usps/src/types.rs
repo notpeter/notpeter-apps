@@ -80,20 +80,41 @@ impl RateType {
         }
     }
 
-    /// Returns true if this rate type represents a "forever" stamp
-    pub fn is_forever(&self) -> bool {
-        matches!(
-            self,
-            RateType::Forever
-                | RateType::Postcard
-                | RateType::International
-                | RateType::GlobalForever
-                | RateType::AdditionalOunce
-                | RateType::TwoOunce
-                | RateType::ThreeOunce
-                | RateType::Nonmachineable
-                | RateType::Semipostal
-        )
+    /// Returns true if this rate type represents a "forever" stamp for the given year
+    ///
+    /// Forever stamp availability by rate type:
+    /// - Forever (generic): always true (2007+)
+    /// - First Class: 2011+
+    /// - International / Global Forever: 2013+
+    /// - Postcard, Additional Ounce, Two Ounce, Three Ounce, Nonmachineable: 2015+
+    /// - Semipostal: always true (treated as forever)
+    pub fn is_forever(&self, year: u32) -> bool {
+        match self {
+            // Generic "Forever" rate type - always forever
+            RateType::Forever | RateType::Semipostal => true,
+
+            // First Class: forever starting 2011
+            RateType::FirstClass => year >= 2011,
+
+            // International: forever starting 2013
+            RateType::International | RateType::GlobalForever => year >= 2013,
+
+            // These rate types: forever starting 2015
+            RateType::Postcard
+            | RateType::AdditionalOunce
+            | RateType::TwoOunce
+            | RateType::ThreeOunce
+            | RateType::Nonmachineable => year >= 2015,
+
+            // Denominated stamps are never forever
+            RateType::Definitive
+            | RateType::PriorityMail
+            | RateType::PriorityMailExpress
+            | RateType::PresortedFirstClass
+            | RateType::PresortedStandard
+            | RateType::Nonprofit
+            | RateType::Other => false,
+        }
     }
 }
 

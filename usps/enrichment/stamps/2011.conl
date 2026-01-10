@@ -17,6 +17,7 @@ replica-of-statue-of-liberty-las-vegas
 voyageurs-national-park-minnesota ; airmail canada/mexico
   rate = 0.80
   rate_type = International
+  forever = false
 
 new-river-gorge-bridge
   rate  = 4.95
@@ -27,14 +28,17 @@ flags-of-our-nation-set-5
 oveta-culp-hobby
   rate = 0.84
   rate_type = Three Ounce
+  forever = false
 
 george-washington-by-gilbert-stuart
   rate = 0.20
   rate_type = Additional Ounce
+  forever = false
 
 herbs
   rate = 0.29
   rate_type = Postcard
+  forever = false
 
 common-terns-stamped-card
   rate = 0.29

@@ -550,29 +550,11 @@ fn parse_credits_heading(heading: &str) -> CreditsHeadingType {
 /// Generate the new slug format based on rate_type and rate
 /// Format: "{base}-{denomination}-{year}" for denominated, "{base}-{value_type}-{year}" for forever
 fn generate_slug(api_slug: &str, year: u32, rate_type: Option<&str>, rate: Option<&str>) -> (String, bool) {
-    // Forever stamps only exist from 2007 onwards
-    // For pre-2007 stamps, always false
-    let is_forever = if year < 2007 {
-        false
-    } else {
-        // Determine if this is a forever stamp based on rate_type
-        match rate_type {
-            Some("Forever")
-            | Some("Semipostal")
-            | Some("International")
-            | Some("Global Forever")
-            | Some("Postcard")
-            | Some("Additional Ounce")
-            | Some("Additional Postage")
-            | Some("Two Ounce")
-            | Some("Three Ounce")
-            | Some("Nonmachineable Surcharge") => true,
-            Some("Presorted Standard") | Some("Presorted First-Class") => false,
-            // Without rate_type, assume not forever (denominated)
-            None => false,
-            _ => false,
-        }
-    };
+    // Use RateType::is_forever(year) to determine if this is a forever stamp
+    // This respects the year-based rules for when forever stamps became available
+    let is_forever = rate_type
+        .map(|rt| RateType::from_str(rt).is_forever(year))
+        .unwrap_or(false);
 
     // Clean the API slug to get base name (remove year suffix if present)
     let year_suffix = format!("-{}", year);
@@ -895,44 +877,47 @@ fn scrape_stamp(
         }
     });
 
-    // Get corrected rate (current rate for forever stamps, API rate for denominated)
+    // Determine if this stamp is forever based on override or year-based rules
+    // This ignores the API's forever field in favor of our year-based rules
+    let stamp_is_forever = forever_override.unwrap_or_else(|| {
+        detail
+            .rate_type
+            .as_ref()
+            .map(|rt| RateType::from_str(rt).is_forever(year))
+            .unwrap_or(false)
+    });
+
+    // Get corrected rate (current rate for forever stamps, historical rate for denominated)
     // If there's an explicit rate override, use it directly instead of calculating
-    // Special cases: historical rate lookup based on issue_date when forever=false
     let corrected_rate = if let Some(ref override_rate) = rate_override {
         Some(override_rate.clone())
-    } else if detail.rate_type.as_deref() == Some("First Class") {
-        // Look up historical 1oz letter rate based on issue_date
-        issue_date
-            .as_ref()
-            .and_then(|d| postal_rates.letter.rate_on_date_str(d))
-            .map(|r| format!("{:.2}", r))
-    } else if matches!(detail.rate_type.as_deref(), Some("Additional Ounce") | Some("Additional Postage"))
-        && forever_override == Some(false)
-    {
-        // Look up historical additional ounce rate based on issue_date (non-forever only)
-        issue_date
-            .as_ref()
-            .and_then(|d| postal_rates.ounce.rate_on_date_str(d))
-            .map(|r| format!("{:.2}", r))
-    } else if detail.rate_type.as_deref() == Some("Two Ounce") && forever_override == Some(false) {
-        // Look up historical 2oz rate based on issue_date (non-forever only)
-        issue_date
-            .as_ref()
-            .and_then(|d| postal_rates.letter_2oz_str(d))
-            .map(|r| format!("{:.2}", r))
-    } else if detail.rate_type.as_deref() == Some("Three Ounce") && forever_override == Some(false) {
-        // Look up historical 3oz rate based on issue_date (non-forever only)
-        issue_date
-            .as_ref()
-            .and_then(|d| postal_rates.letter_3oz_str(d))
-            .map(|r| format!("{:.2}", r))
-    } else if detail.rate_type.as_deref() == Some("Postcard") && forever_override == Some(false) {
-        // Look up historical postcard rate based on issue_date (non-forever only)
-        issue_date
-            .as_ref()
-            .and_then(|d| postal_rates.postcard_str(d))
-            .map(|r| format!("{:.2}", r))
+    } else if !stamp_is_forever {
+        // Non-forever stamp: look up historical rate based on issue_date and rate_type
+        match detail.rate_type.as_deref() {
+            Some("First Class") => issue_date
+                .as_ref()
+                .and_then(|d| postal_rates.letter.rate_on_date_str(d))
+                .map(|r| format!("{:.2}", r)),
+            Some("Additional Ounce") | Some("Additional Postage") => issue_date
+                .as_ref()
+                .and_then(|d| postal_rates.ounce.rate_on_date_str(d))
+                .map(|r| format!("{:.2}", r)),
+            Some("Two Ounce") => issue_date
+                .as_ref()
+                .and_then(|d| postal_rates.letter_2oz_str(d))
+                .map(|r| format!("{:.2}", r)),
+            Some("Three Ounce") => issue_date
+                .as_ref()
+                .and_then(|d| postal_rates.letter_3oz_str(d))
+                .map(|r| format!("{:.2}", r)),
+            Some("Postcard") => issue_date
+                .as_ref()
+                .and_then(|d| postal_rates.postcard_str(d))
+                .map(|r| format!("{:.2}", r)),
+            _ => get_corrected_rate(api_slug, detail.rate.as_deref(), detail.rate_type.as_deref()),
+        }
     } else {
+        // Forever stamp: use current rates
         get_corrected_rate(
             api_slug,
             detail.rate.as_deref(),
