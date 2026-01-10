@@ -1,6 +1,42 @@
 ; Overrides for 2006
 ; Format: api-slug followed by indented field = value
 
-sugar-ray-robinson
-  rate = 0.39
+washington-2006-world-philatelic-exhibition
+  rate = 1.00
   rate_type = Definitive
+
+common-buckeye-butterfly
+  rate_type = Postcard
+
+dr-albert-sabin
+  rate_type = Definitive ; Large Envelope
+  rate = 0.87
+
+dr-jonas-salk
+  rate_type = Two Ounce
+
+our-wedding
+  rate_type = Two Ounce
+
+bryce-canyon-national-park
+  rate_type = International
+  rate = 0.63
+
+great-smoky-mountains-national-park
+  rate_type = International
+  rate = 0.75
+
+yosemite-national-park
+  rate_type = International
+  rate = 0.84
+
+x-planes
+  rate = 4.05
+
+x-planes-express
+  rate = 14.40
+
+; TODO: There are two version of this stamp 37/39 cents. 2005/2006 Images are mixed.
+; ronald-reagan-??
+  ; rate = 0.39
+  ; slug = ronald-regan-2006

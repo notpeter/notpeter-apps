@@ -1,2 +1,14 @@
 ; Overrides for 2004
 ; Format: api-slug followed by indented field = value
+
+navajo-jewelry
+  rate = 0.02
+
+chippendale-chair-1
+  rate = 0.04
+
+wilma-rudolph
+  rate_type = Postcard
+
+garden-botanical
+  rate_type = Two Ounce

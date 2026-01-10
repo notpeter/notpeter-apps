@@ -2,12 +2,42 @@
 ; Format: api-slug followed by indented field = value
 
 american-buffalo
+  rate_type = Postcard
   rate = 0.21
-  rate_type = Definitive
-
-amish-quilts
-  rate = 0.34
-  rate_type = Definitive
 
 george-washington-4
   rate = 0.20
+
+acadia-national-park
+  rate_type = International
+  rate = 0.60
+
+mount-mckinley
+  rate_type = International
+  rate = 0.80
+
+nine-mile-prairie
+  rate_type = International
+  rate = 0.70
+
+art-deco-eagle
+  rate_type = Two Ounce
+  rate = 0.57
+
+hattie-caraway
+  rate_type = Three Ounce
+
+us-capitol-1
+  rate = 3.50
+
+washington-monument
+  rate = 12.95
+
+the-pan-american-inverts
+  rate_type = Definitive
+  rate = 0.80
+  stamp_images
+    = 3xLKJW68TQLvumh78jq3sArMhYgjIGXOgeHAMUO0.png
+    = Eg7ALJ6oUBcABRsQKLiyN8ZTgQiyCNZIdQDjlQRi.png
+    = 3nLQsGpVGORn7A5615TkJfmu1rfVw66wPac76zmm.png
+    = sLYdniYTdlTbfUSxEkUoJWeUKP3tuh4AHEpJYwVQ.png

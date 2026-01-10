@@ -31,6 +31,7 @@ struct StampOverrides {
     issued: Option<String>,
     #[serde(rename = "type")]
     stamp_type: Option<String>,
+    stamp_images: Option<Vec<String>>,
 }
 
 /// Valid rate_type values (must match RateType enum variants)
@@ -685,6 +686,7 @@ fn scrape_stamp(
     let mut stamp_type_override: Option<String> = None;
     let mut extra_cost: Option<f64> = None;
     let mut rate_override: Option<String> = None;
+    let mut stamp_images_override: Option<Vec<String>> = None;
 
     if let Some(year_overrides) = overrides.get(&year) {
         if let Some(stamp_overrides) = year_overrides.get(api_slug) {
@@ -712,6 +714,7 @@ fn scrape_stamp(
             forever_override = stamp_overrides.forever;
             stamp_type_override = stamp_overrides.stamp_type.clone();
             extra_cost = stamp_overrides.extra_cost;
+            stamp_images_override = stamp_overrides.stamp_images.clone();
         }
     }
 
@@ -754,6 +757,11 @@ fn scrape_stamp(
 
     if !quiet {
         print!("] ");
+    }
+
+    // Apply stamp_images override if specified
+    if let Some(override_images) = stamp_images_override {
+        stamp_images = override_images;
     }
 
     // Default rate_type to "First Class" if not specified

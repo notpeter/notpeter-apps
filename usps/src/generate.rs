@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 
 const OUTPUT_DIR: &str = "output";
 const DATA_DIR: &str = "data/stamps";
-const MIN_YEAR: u32 = 2007;
+const MIN_YEAR: u32 = 1995;
 
 // Rate types to hide
 const HIDDEN_RATE_TYPES: &[&str] = &[
@@ -1487,6 +1487,7 @@ fn page_header(title: &str, current_path: &str) -> String {
         ("/denominated-postage-stamps/", "Denominated"),
         ("/cards/", "Cards"),
         ("/envelopes/", "Envelopes"),
+        ("/series/", "Series"),
         ("/credits/", "Credits"),
     ];
 
@@ -1781,14 +1782,16 @@ fn generate_stamp_page(stamp: &Stamp, output_dir: &Path) -> Result<()> {
 
     if let Some(rate_type) = &stamp.rate_type {
         html.push_str(&format!(
-            r#"<span class="stamp-meta-label">Type</span><span>{}</span>"#,
+            r#"<span class="stamp-meta-label">Type</span><span><a href="/rates/{}/">{}</a></span>"#,
+            slugify(rate_type),
             html_escape(rate_type)
         ));
     }
 
     if let Some(series) = &stamp.series {
         html.push_str(&format!(
-            r#"<span class="stamp-meta-label">Series</span><span>{}</span>"#,
+            r#"<span class="stamp-meta-label">Series</span><span><a href="/series/{}/">{}</a></span>"#,
+            slugify(series),
             html_escape(series)
         ));
     }
@@ -2340,6 +2343,210 @@ fn generate_people_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Generate series index and individual series pages
+fn generate_series_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
+    // Collect all series and their stamps
+    let mut series_map: HashMap<String, Vec<&Stamp>> = HashMap::new();
+
+    for stamp in stamps {
+        if let Some(series) = &stamp.series {
+            series_map.entry(series.clone()).or_default().push(stamp);
+        }
+    }
+
+    // Sort series by stamp count (descending), then alphabetically
+    let mut sorted_series: Vec<_> = series_map.into_iter().collect();
+    sorted_series.sort_by(|a, b| {
+        b.1.len()
+            .cmp(&a.1.len())
+            .then_with(|| a.0.cmp(&b.0))
+    });
+
+    // Generate index page
+    let series_dir = output_dir.join("series");
+    fs::create_dir_all(&series_dir)?;
+
+    let mut html = page_header("Series", "/series/");
+
+    html.push_str(
+        r#"<nav class="breadcrumb">
+    <a href="/">Home</a> <span>/</span>
+    <span>Series</span>
+</nav>
+"#,
+    );
+
+    html.push_str("<h2>Stamp Series</h2>");
+    html.push_str(&format!(
+        "<p style=\"margin-bottom: 24px; color: var(--text-muted);\">{} series</p>",
+        sorted_series.len()
+    ));
+
+    html.push_str(r#"<div class="people-grid">"#);
+    for (series_name, series_stamps) in &sorted_series {
+        let slug = slugify(series_name);
+        html.push_str(&format!(
+            r#"<a href="/series/{}/" class="person-link">
+    <div class="person-name">{}</div>
+    <div class="person-count">{} stamps</div>
+</a>"#,
+            slug,
+            html_escape(series_name),
+            series_stamps.len()
+        ));
+    }
+    html.push_str("</div>");
+
+    html.push_str(page_footer());
+    fs::write(series_dir.join("index.html"), html)?;
+
+    // Generate individual series pages
+    for (series_name, mut series_stamps) in sorted_series {
+        let slug = slugify(&series_name);
+        let page_dir = series_dir.join(&slug);
+        fs::create_dir_all(&page_dir)?;
+
+        // Sort stamps by year desc, then issue_date desc, then name
+        series_stamps.sort_by(|a, b| {
+            b.year
+                .cmp(&a.year)
+                .then_with(|| b.issue_date.cmp(&a.issue_date))
+                .then_with(|| a.name.cmp(&b.name))
+        });
+
+        let mut html = page_header(&series_name, "");
+
+        html.push_str(&format!(
+            r#"<nav class="breadcrumb">
+    <a href="/">Home</a> <span>/</span>
+    <a href="/series/">Series</a> <span>/</span>
+    <span>{}</span>
+</nav>
+"#,
+            html_escape(&series_name)
+        ));
+
+        html.push_str(&format!("<h2>{}</h2>", html_escape(&series_name)));
+        html.push_str(&format!(
+            "<p style=\"margin-bottom: 24px; color: var(--text-muted);\">{} stamps</p>",
+            series_stamps.len()
+        ));
+
+        html.push_str(r#"<div class="stamp-grid">"#);
+        for stamp in &series_stamps {
+            html.push_str(&stamp_card_html(stamp, "/images"));
+        }
+        html.push_str("</div>");
+
+        html.push_str(page_footer());
+        fs::write(page_dir.join("index.html"), html)?;
+    }
+
+    Ok(())
+}
+
+/// Generate rate type index and individual rate type pages
+fn generate_rate_type_pages(stamps: &[Stamp], output_dir: &Path) -> Result<()> {
+    // Collect all rate types and their stamps
+    let mut rate_type_map: HashMap<String, Vec<&Stamp>> = HashMap::new();
+
+    for stamp in stamps {
+        if let Some(rate_type) = &stamp.rate_type {
+            rate_type_map.entry(rate_type.clone()).or_default().push(stamp);
+        }
+    }
+
+    // Sort rate types by stamp count (descending), then alphabetically
+    let mut sorted_rate_types: Vec<_> = rate_type_map.into_iter().collect();
+    sorted_rate_types.sort_by(|a, b| {
+        b.1.len()
+            .cmp(&a.1.len())
+            .then_with(|| a.0.cmp(&b.0))
+    });
+
+    // Generate index page
+    let rate_type_dir = output_dir.join("rates");
+    fs::create_dir_all(&rate_type_dir)?;
+
+    let mut html = page_header("Rate Types", "/rates/");
+
+    html.push_str(
+        r#"<nav class="breadcrumb">
+    <a href="/">Home</a> <span>/</span>
+    <span>Rate Types</span>
+</nav>
+"#,
+    );
+
+    html.push_str("<h2>Rate Types</h2>");
+    html.push_str(&format!(
+        "<p style=\"margin-bottom: 24px; color: var(--text-muted);\">{} rate types</p>",
+        sorted_rate_types.len()
+    ));
+
+    html.push_str(r#"<div class="people-grid">"#);
+    for (rate_type_name, rate_type_stamps) in &sorted_rate_types {
+        let slug = slugify(rate_type_name);
+        html.push_str(&format!(
+            r#"<a href="/rates/{}/" class="person-link">
+    <div class="person-name">{}</div>
+    <div class="person-count">{} stamps</div>
+</a>"#,
+            slug,
+            html_escape(rate_type_name),
+            rate_type_stamps.len()
+        ));
+    }
+    html.push_str("</div>");
+
+    html.push_str(page_footer());
+    fs::write(rate_type_dir.join("index.html"), html)?;
+
+    // Generate individual rate type pages
+    for (rate_type_name, mut rate_type_stamps) in sorted_rate_types {
+        let slug = slugify(&rate_type_name);
+        let page_dir = rate_type_dir.join(&slug);
+        fs::create_dir_all(&page_dir)?;
+
+        // Sort stamps by year desc, then issue_date desc, then name
+        rate_type_stamps.sort_by(|a, b| {
+            b.year
+                .cmp(&a.year)
+                .then_with(|| b.issue_date.cmp(&a.issue_date))
+                .then_with(|| a.name.cmp(&b.name))
+        });
+
+        let mut html = page_header(&rate_type_name, "");
+
+        html.push_str(&format!(
+            r#"<nav class="breadcrumb">
+    <a href="/">Home</a> <span>/</span>
+    <a href="/rates/">Rate Types</a> <span>/</span>
+    <span>{}</span>
+</nav>
+"#,
+            html_escape(&rate_type_name)
+        ));
+
+        html.push_str(&format!("<h2>{}</h2>", html_escape(&rate_type_name)));
+        html.push_str(&format!(
+            "<p style=\"margin-bottom: 24px; color: var(--text-muted);\">{} stamps</p>",
+            rate_type_stamps.len()
+        ));
+
+        html.push_str(r#"<div class="stamp-grid">"#);
+        for stamp in &rate_type_stamps {
+            html.push_str(&stamp_card_html(stamp, "/images"));
+        }
+        html.push_str("</div>");
+
+        html.push_str(page_footer());
+        fs::write(page_dir.join("index.html"), html)?;
+    }
+
+    Ok(())
+}
+
 /// Generate homepage
 fn generate_homepage(stamps: &[Stamp], years: &[u32], output_dir: &Path) -> Result<()> {
     let mut html = page_header("US Postage Stamps", "/");
@@ -2572,6 +2779,12 @@ pub fn run_generate() -> Result<()> {
 
     println!("Generating people pages...");
     generate_people_pages(&stamps, &output_dir)?;
+
+    println!("Generating series pages...");
+    generate_series_pages(&stamps, &output_dir)?;
+
+    println!("Generating rate type pages...");
+    generate_rate_type_pages(&stamps, &output_dir)?;
 
     println!("Generating homepage...");
     generate_homepage(&stamps, &years, &output_dir)?;

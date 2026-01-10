@@ -3,28 +3,38 @@
 
 flag-over-farm
   rate = 0.34
-  rate_type = Definitive
-
 flowers
   rate = 0.34
-  rate_type = Definitive
-
 library-of-congress-1
   rate = 0.33
-  rate_type = Definitive
-
-louise-nevelson
-  rate = 0.33
-  rate_type = Definitive
-
 statue-of-liberty-4
-  rate = 0.33
+  rate = 0.34
+joseph-w-stilwell
+  rate = 0.10
   rate_type = Definitive
 
-summer-sports
-  rate = 0.33
+
+grand-canyon-2
+  rate = 0.60
+  rate_type = International
+probing-the-vastness-of-space
+  rate = 0.60
   rate_type = Definitive
 
-the-stars-and-stripes
-  rate = 0.33
+; TODO This needs to be split into multiple stamps (60/22/55/33/3.20)
+us-navy-submarines
+  rate = 0.60
+  rate_type = Definitive
+
+; TODO no pics
+escaping-the-gravity-of-earth
+  rate = 3.20
+  rate_type = Priority Mail
+
+landing-on-the-moon
+  rate = 11.75
+  rate_type = Priority Mail Express
+
+exploring-the-solar-system
+  rate = 1.00
   rate_type = Definitive

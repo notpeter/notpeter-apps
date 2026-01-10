@@ -1,6 +1,20 @@
 ; Overrides for 2003
 ; Format: api-slug followed by indented field = value
 
+; TODO figure out best to handle these
 stop-family-violence
-  rate = 0.37
+  rate = 0.78
   rate_type = Semipostal
+  ; extra_cost =
+  forever = true
+
+american-clock
+  rate = 0.10
+
+wisdom
+  rate = 1.00
+  rate_type = Definitive
+
+special-olympics-1
+  rate = 0.80
+  rate_type = International

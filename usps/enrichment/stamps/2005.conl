@@ -2,5 +2,16 @@
 ; Format: api-slug followed by indented field = value
 
 flag-and-statue-of-liberty
+  rate_type = First Class
+
+silver-coffeepot
+  rate = 0.03
+
+ronald-reagan-1
   rate = 0.37
-  rate_type = Definitive
+  slug = ronald-regan-37-2005
+
+; TODO: There are two version of this stamp 37/39 cents. Images are mixed.
+ronald-reagan
+  rate = 0.37
+  slug = ronald-regan-2005
